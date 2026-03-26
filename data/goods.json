@@ -1,0 +1,135 @@
+[
+  {
+    "id": "sample-001",
+    "name": "九州プロレス Tシャツ 2024",
+    "category": "Tシャツ",
+    "releaseDate": "2026-01",
+    "concept": "九州の熱さをデザインに込めた定番Tシャツ",
+    "target": "ファン全般",
+    "salesChannel": "会場+EC",
+    "status": "発売中",
+    "priority": "今すぐ作る",
+    "memo": "カラー展開：ブラック・レッド",
+    "budget": {
+      "budgetAmount": 500000,
+      "designCost": 30000,
+      "sampleCost": 15000,
+      "manufacturingCost": 400000,
+      "shippingCost": 20000,
+      "otherCost": 10000
+    },
+    "sales": {
+      "sellingPrice": 3500,
+      "productionCount": 200,
+      "salesCount": 150
+    },
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-03-01T00:00:00.000Z"
+  },
+  {
+    "id": "sample-002",
+    "name": "選手アクスタ 第1弾",
+    "category": "アクスタ",
+    "releaseDate": "2026-02",
+    "concept": "人気選手のアクリルスタンド",
+    "target": "コアファン",
+    "salesChannel": "会場",
+    "status": "制作中",
+    "priority": "次月候補",
+    "memo": "3種展開予定",
+    "budget": {
+      "budgetAmount": 200000,
+      "designCost": 20000,
+      "sampleCost": 10000,
+      "manufacturingCost": 150000,
+      "shippingCost": 8000,
+      "otherCost": 5000
+    },
+    "sales": {
+      "sellingPrice": 2000,
+      "productionCount": 150,
+      "salesCount": 0
+    },
+    "createdAt": "2024-02-01T00:00:00.000Z",
+    "updatedAt": "2024-02-20T00:00:00.000Z"
+  },
+  {
+    "id": "sample-003",
+    "name": "FC限定キーホルダー",
+    "category": "キーホルダー",
+    "concept": "ファンクラブ会員限定の特典グッズ",
+    "target": "ファンクラブ会員",
+    "salesChannel": "FC限定",
+    "status": "検討中",
+    "priority": "保留",
+    "memo": "",
+    "budget": {
+      "budgetAmount": 100000,
+      "designCost": 10000,
+      "sampleCost": 5000,
+      "manufacturingCost": 60000,
+      "shippingCost": 5000,
+      "otherCost": 0
+    },
+    "sales": {
+      "sellingPrice": 1500,
+      "productionCount": 0,
+      "salesCount": 0
+    },
+    "createdAt": "2024-03-01T00:00:00.000Z",
+    "updatedAt": "2024-03-01T00:00:00.000Z"
+  },
+  {
+    "id": "goods-1774299556260",
+    "name": "TAJIRIくん from TAMANA Tシャツ",
+    "category": "Tシャツ",
+    "releaseDate": "2026-03",
+    "concept": "TAJIRIファン向けアイテム",
+    "target": "ファン全般",
+    "salesChannel": "会場+EC",
+    "status": "発売中",
+    "priority": "次月候補",
+    "memo": "2026.3.20玉名大会から発売スタート。リピート2回目",
+    "budget": {
+      "budgetAmount": 0,
+      "designCost": 0,
+      "sampleCost": 0,
+      "manufacturingCost": 1420,
+      "shippingCost": 0,
+      "otherCost": 0
+    },
+    "sales": {
+      "sellingPrice": 3182,
+      "productionCount": 30,
+      "salesCount": 0
+    },
+    "createdAt": "2026-03-23T20:59:16.260Z",
+    "updatedAt": "2026-03-23T20:59:16.260Z"
+  },
+  {
+    "id": "goods-1774346219170-rj9w3",
+    "name": "九州プロレス 試合結果記念ポストカードセット（3月大会版）",
+    "category": "キーホルダー",
+    "concept": "3月大会の試合結果・名場面を写真ポストカードにしたセット商品。大会終了後にデータ確定・即入稿できる超小ロット受注生産品。",
+    "target": "大会来場者・遠征できなかった全国ファン",
+    "salesChannel": "EC",
+    "status": "案出し中",
+    "priority": "次月候補",
+    "memo": "【月次AI提案】3月大会の熱量が高い直後にEC販売することで購買衝動を逃さない。印刷物は小ロット・低原価・高粗利率（76%）が実現しやすく、在庫リスクもほぼゼロ。アクスタ・Tシャツの在庫過多失敗を踏まえ、試合後の限定感・タイムリー性で需要を確実に捕捉する設計。直近3ヶ月で売上が立っていない商品が続いており、確実に動く小額商品でECの数字を積み上げる狙いもある。\n\n根拠: 直近3ヶ月：Tシャツ以外売上¥0。EC粗利率9.3%の実績はあるが在庫率34.8%と改善余地あり。低価格・高粗利率・受注生産の組み合わせで在庫率0%・粗利率76%を目指す。\n\nリスク: 大会写真の撮影・選定・入稿作業が大会当日〜翌日に集中するためオペレーション負荷が高い。発売から手元到着まで1〜2週間かかるため顧客への事前説明が必要。",
+    "budget": {
+      "budgetAmount": 0,
+      "designCost": 0,
+      "sampleCost": 0,
+      "manufacturingCost": 280,
+      "shippingCost": 0,
+      "otherCost": 0
+    },
+    "sales": {
+      "sellingPrice": 1200,
+      "productionCount": 0,
+      "salesCount": 0
+    },
+    "createdAt": "2026-03-24T09:56:59.170Z",
+    "updatedAt": "2026-03-24T09:57:19.980Z"
+  }
+]

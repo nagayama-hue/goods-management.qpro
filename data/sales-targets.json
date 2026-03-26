@@ -1,0 +1,14 @@
+[
+  { "year": 2026, "month":  1, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  2, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  3, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  4, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  5, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  6, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  7, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  8, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month":  9, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month": 10, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month": 11, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 },
+  { "year": 2026, "month": 12, "venueHosted": 888000, "venueEvent": 387000, "ecRegular": 83000, "ecSeasonal": 123000, "ecPreorder": 100000, "ecFc": 86000, "ecAnniversary": 0 }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "sup-001",
+    "name": "有限会社 九州プリント工房",
+    "contactName": "山田 太郎",
+    "phone": "092-000-0001",
+    "email": "info@kyushu-print.example.com",
+    "genres": ["Tシャツ", "タオル"],
+    "priceSense": "標準",
+    "deliverySpeed": "普通",
+    "deliveryDays": 21,
+    "minLot": 50,
+    "quality": "普通",
+    "rating": 4,
+    "memo": "Tシャツ・タオルの実績あり。入稿後3週間で納品。最低50枚から対応可。"
+  },
+  {
+    "id": "sup-002",
+    "name": "アクリル工房 きゅうしゅう",
+    "contactName": "田中 花子",
+    "phone": "093-000-0002",
+    "email": "order@acrylic-kyu.example.com",
+    "genres": ["アクスタ", "キーホルダー"],
+    "priceSense": "高め",
+    "deliverySpeed": "速い",
+    "deliveryDays": 14,
+    "minLot": 30,
+    "quality": "高品質",
+    "rating": 5,
+    "memo": "アクスタ・キーホルダー専門。品質が高く小ロット対応。14日で納品可能。"
+  }
+]

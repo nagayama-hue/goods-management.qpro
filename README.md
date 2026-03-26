@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# グッズ事業管理ツール
 
-## Getting Started
+同人・ライブグッズの商品管理・会議・イベント・売上管理を一元化する社内ツールです。
 
-First, run the development server:
+## ローカル開発
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 必要な環境変数
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local` をプロジェクトルートに作成：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+ANTHROPIC_API_KEY=sk-ant-xxxxxxx   # AI案出し・月次サマリーに必要
+```
 
-## Learn More
+## デプロイ
 
-To learn more about Next.js, take a look at the following resources:
+Railway でのデプロイを前提としています。手順・チェックリストは [RAILWAY.md](./RAILWAY.md) を参照してください。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## データ保存について
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+このアプリは `data/*.json` をファイルシステムで直接読み書きします。
 
-## Deploy on Vercel
+| 環境 | データ保持 |
+|---|---|
+| ローカル開発 | そのまま保持 |
+| Railway（Volume あり） | 再デプロイ後も保持 |
+| Railway（Volume なし） | **再デプロイでリセット** |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**本番運用では必ず Railway の Persistent Volume を `/app/data` にマウントしてください。**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 主要機能
+
+| 機能 | パス | 状態 |
+|---|---|---|
+| ダッシュボード | `/dashboard` | 稼働中 |
+| 商品一覧・登録・詳細 | `/goods` | 稼働中 |
+| 会議記録 | `/meeting` | 稼働中 |
+| EC管理 | `/ec` | 稼働中 |
+| 大会・イベント管理 | `/events` | 稼働中 |
+| 取引先管理 | `/suppliers` | 稼働中 |
+| アナリティクス | `/analytics` | 稼働中 |
+| Airレジ連携 | `/airregi` | 保留中（CSV取込のみ） |
