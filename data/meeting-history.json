@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": "meeting-sample-001",
+    "name": "3月定例 商品企画会議",
+    "date": "2026-03-20",
+    "memo": "玉名大会終了後の振り返り。ポストカードセットをEC限定で試験販売する方向で合意。アクスタ第1弾は4月大会に向けて制作進行。",
+    "createdAt": "2026-03-20T18:30:00.000Z",
+    "scope": "filtered",
+    "filterParams": {},
+    "items": [
+      {
+        "goodsId": "goods-1774346219170-rj9w3",
+        "goodsName": "九州プロレス 試合結果記念ポストカードセット（3月大会版）",
+        "priority": "次月候補",
+        "status": "案出し中",
+        "result": "採用",
+        "comment": "低原価・高粗利・在庫リスクゼロで試しやすい。大会直後のEC販売で実績を作る。"
+      },
+      {
+        "goodsId": "sample-002",
+        "goodsName": "選手アクスタ 第1弾",
+        "priority": "次月候補",
+        "status": "制作中",
+        "result": "継続検討",
+        "comment": "4月大会に間に合わせるよう取引先と納期確認中。"
+      },
+      {
+        "goodsId": "sample-003",
+        "goodsName": "FC限定キーホルダー",
+        "priority": "保留",
+        "status": "検討中",
+        "result": "保留",
+        "comment": "ファンクラブ施策全体の方針が固まってから再検討。"
+      }
+    ]
+  }
+]

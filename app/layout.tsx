@@ -26,8 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/events"             className="text-gray-600 hover:text-gray-900">大会管理</Link>
               <Link href="/ec"                 className="text-gray-600 hover:text-gray-900">EC管理</Link>
               <Link href="/suppliers"          className="text-gray-600 hover:text-gray-900">取引先</Link>
-              {/* Airレジ連携は現在保留中 */}
-              <Link href="/airregi"            className="text-gray-400 hover:text-gray-600">Airレジ</Link>
+              <Link href="/airregi" title="保留中（API仕様確認待ち）" className="text-gray-400 hover:text-gray-600">
+                Airレジ <span className="text-xs">⏸</span>
+              </Link>
             </nav>
           </div>
         </header>

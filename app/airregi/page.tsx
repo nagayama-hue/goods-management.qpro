@@ -74,8 +74,8 @@ export default function AirregiPage() {
         {[
           { label: "自作ツールの商品数",     value: allGoods.length,  color: "text-gray-900" },
           { label: "商品コード設定済み",      value: linkedCount,      color: "text-blue-600" },
-          { label: "コード未設定",            value: unlinkedCount,    color: unlinkedCount > 0 ? "text-orange-600" : "text-gray-400" },
-          { label: "在庫データと一致",        value: matchedCount,     color: matchedCount  > 0 ? "text-green-600" : "text-gray-400" },
+          { label: "コード未設定",            value: unlinkedCount,    color: "text-gray-400" },
+          { label: "在庫データと一致",        value: matchedCount,     color: "text-gray-400" },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded border border-gray-200 bg-white p-4">
             <p className="text-xs text-gray-500">{label}</p>
@@ -84,8 +84,8 @@ export default function AirregiPage() {
         ))}
       </div>
 
-      {/* コード未設定商品への導線 */}
-      {unlinkedCount > 0 && (
+      {/* コード未設定商品への導線（CSV取込済みの場合のみ表示） */}
+      {products.length > 0 && unlinkedCount > 0 && (
         <div className="rounded border border-orange-200 bg-orange-50 px-4 py-3 text-sm">
           <span className="font-medium text-orange-700">
             {unlinkedCount}件の商品にAirレジ商品コードが設定されていません。
