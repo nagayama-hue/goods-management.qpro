@@ -149,7 +149,11 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
       {/* 販売計画 */}
       <section className="rounded border border-gray-200 bg-white p-5">
         <h2 className="mb-1 text-sm font-semibold text-gray-700">販売計画</h2>
-        <p className="mb-4 text-xs text-gray-400">計画値です。実績はAirレジ連携後に参照できます。</p>
+        <p className="mb-4 text-xs text-gray-400">
+          {g.variants && g.variants.length > 0
+            ? "バリエーション集計値です。内訳は下の表を参照してください。"
+            : "計画値です。実績はAirレジ連携後に参照できます。"}
+        </p>
         <dl className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <dt className="text-xs text-gray-500">予定製作数</dt>
@@ -165,6 +169,53 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
           </div>
         </dl>
       </section>
+
+      {/* バリエーション内訳 */}
+      {g.variants && g.variants.length > 0 && (
+        <section className="rounded border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 text-sm font-semibold text-gray-700">バリエーション内訳</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
+              <thead>
+                <tr className="border-b text-xs text-gray-500">
+                  <th className="pb-2 pr-4 text-left font-medium">カラー</th>
+                  <th className="pb-2 pr-4 text-left font-medium">サイズ</th>
+                  <th className="pb-2 pr-4 text-right font-medium">予定製作数</th>
+                  <th className="pb-2 pr-4 text-right font-medium">在庫数</th>
+                  <th className="pb-2 text-right font-medium">販売数</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {g.variants.map((v) => (
+                  <tr key={v.id}>
+                    <td className="py-2 pr-4 text-gray-700">{v.color || "—"}</td>
+                    <td className="py-2 pr-4 text-gray-700">{v.size || "—"}</td>
+                    <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatNumber(v.plannedQuantity)} 個</td>
+                    <td className={`py-2 pr-4 text-right tabular-nums font-medium ${v.stockQuantity === 0 ? "text-red-600" : v.stockQuantity <= 5 ? "text-orange-600" : "text-gray-700"}`}>
+                      {formatNumber(v.stockQuantity)} 個
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-gray-700">{formatNumber(v.soldQuantity)} 個</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t text-xs font-semibold text-gray-700">
+                  <td className="pt-2 pr-4" colSpan={2}>合計</td>
+                  <td className="pt-2 pr-4 text-right tabular-nums">
+                    {formatNumber(g.variants.reduce((s, v) => s + v.plannedQuantity, 0))} 個
+                  </td>
+                  <td className="pt-2 pr-4 text-right tabular-nums">
+                    {formatNumber(g.variants.reduce((s, v) => s + v.stockQuantity, 0))} 個
+                  </td>
+                  <td className="pt-2 text-right tabular-nums">
+                    {formatNumber(g.variants.reduce((s, v) => s + v.soldQuantity, 0))} 個
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* 予算・コスト内訳 */}
       <section className="rounded border border-gray-200 bg-white p-5">

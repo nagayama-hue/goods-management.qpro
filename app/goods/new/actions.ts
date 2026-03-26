@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { saveGoods } from "@/lib/store";
-import type { Goods, GoodsCategory, GoodsStatus, SalesChannel, Priority } from "@/types/goods";
+import type { Goods, GoodsCategory, GoodsStatus, SalesChannel, Priority, GoodsVariant } from "@/types/goods";
 
 export async function createGoods(
   _prevState: { error: string } | null,
@@ -13,6 +13,15 @@ export async function createGoods(
   if (!name) return { error: "商品名は必須です。" };
 
   const now = new Date().toISOString();
+
+  // バリエーション（JSON）
+  let variants: GoodsVariant[] = [];
+  try {
+    const raw = formData.get("variants")?.toString() ?? "[]";
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) variants = parsed;
+  } catch { /* ignore */ }
+
   const goods: Goods = {
     id: `goods-${Date.now()}`,
     name,
@@ -37,6 +46,7 @@ export async function createGoods(
       productionCount: Number(formData.get("productionCount") ?? 0),
       salesCount: Number(formData.get("salesCount") ?? 0),
     },
+    ...(variants.length > 0 && { variants }),
     createdAt: now,
     updatedAt: now,
   };

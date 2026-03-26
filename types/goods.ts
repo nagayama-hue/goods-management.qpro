@@ -43,8 +43,27 @@ export interface GoodsBudget {
 
 export interface GoodsSales {
   sellingPrice: number;       // 販売価格
-  productionCount: number;    // 製作数
-  salesCount: number;         // 販売数
+  productionCount: number;    // 製作数（バリエーションがある場合は集計値）
+  salesCount: number;         // 販売数（バリエーションがある場合は集計値）
+}
+
+// ─── バリエーション ───────────────────────────────────────────────────────────
+
+export const SIZE_OPTIONS = ["120", "S", "M", "L", "XL", "XXL"] as const;
+export type GoodsSize = typeof SIZE_OPTIONS[number];
+
+export const COLOR_SUGGESTIONS = [
+  "ブラック", "ホワイト", "レッド", "ネイビー", "グレー",
+  "ロイヤルブルー", "グリーン", "イエロー",
+] as const;
+
+export interface GoodsVariant {
+  id: string;
+  color: string;               // カラー（自由入力）
+  size: string;                // サイズ（SIZE_OPTIONS or ""）
+  plannedQuantity: number;     // 予定製作数
+  stockQuantity: number;       // 在庫数
+  soldQuantity: number;        // 販売数
 }
 
 export interface Goods {
@@ -62,6 +81,8 @@ export interface Goods {
   sales: GoodsSales;
   /** Airレジ連携用商品コード。Airレジ側の商品コードと一致させる。 */
   airregiProductCode?: string;
+  /** カラー×サイズのバリエーション一覧（任意）。設定時は sales の製作数・販売数は集計値。 */
+  variants?: GoodsVariant[];
   createdAt: string;
   updatedAt: string;
 }

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getGoodsById, saveGoods } from "@/lib/store";
-import type { GoodsCategory, GoodsStatus, SalesChannel, Priority } from "@/types/goods";
+import type { GoodsCategory, GoodsStatus, SalesChannel, Priority, GoodsVariant } from "@/types/goods";
 
 export async function updateGoods(
   id: string,
@@ -15,6 +15,14 @@ export async function updateGoods(
 
   const name = formData.get("name")?.toString().trim() ?? "";
   if (!name) return { error: "商品名は必須です。" };
+
+  // バリエーション（JSON）
+  let variants: GoodsVariant[] = [];
+  try {
+    const raw = formData.get("variants")?.toString() ?? "[]";
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) variants = parsed;
+  } catch { /* ignore */ }
 
   const updated = {
     ...goods,
@@ -40,6 +48,7 @@ export async function updateGoods(
       productionCount: Number(formData.get("productionCount") ?? 0),
       salesCount: Number(formData.get("salesCount") ?? 0),
     },
+    variants: variants.length > 0 ? variants : undefined,
     airregiProductCode: formData.get("airregiProductCode")?.toString().trim() || undefined,
     updatedAt: new Date().toISOString(),
   };

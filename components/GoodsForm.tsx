@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import type { Goods, GoodsStatus, GoodsCategory, SalesChannel, Priority } from "@/types/goods";
+import { useActionState, useState } from "react";
+import type { Goods, GoodsStatus, GoodsCategory, SalesChannel, Priority, GoodsVariant } from "@/types/goods";
+import { SIZE_OPTIONS, COLOR_SUGGESTIONS } from "@/types/goods";
 
 const CATEGORIES: GoodsCategory[] = [
   "Tシャツ", "パーカー・スウェット", "タオル",
@@ -48,10 +49,26 @@ function numInputProps(name: string, defaultValue: number) {
   };
 }
 
+function newVariant(): GoodsVariant {
+  return { id: `v-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, color: "", size: "", plannedQuantity: 0, stockQuantity: 0, soldQuantity: 0 };
+}
+
 export default function GoodsForm({ defaultValues, action, submitLabel, cancelHref }: Props) {
   const [state, formAction, isPending] = useActionState(action, null);
   const b = defaultValues?.budget;
   const s = defaultValues?.sales;
+
+  const [variants, setVariants] = useState<GoodsVariant[]>(defaultValues?.variants ?? []);
+
+  const updateVariant = (i: number, field: keyof GoodsVariant, value: string | number) =>
+    setVariants((prev) => prev.map((v, idx) => idx === i ? { ...v, [field]: value } : v));
+  const removeVariant = (i: number) =>
+    setVariants((prev) => prev.filter((_, idx) => idx !== i));
+
+  const totalPlanned = variants.reduce((s, v) => s + (v.plannedQuantity || 0), 0);
+  const totalStock   = variants.reduce((s, v) => s + (v.stockQuantity   || 0), 0);
+  const totalSold    = variants.reduce((s, v) => s + (v.soldQuantity    || 0), 0);
+  const hasVariants  = variants.length > 0;
 
   return (
     <form action={formAction} className="space-y-6">
@@ -210,11 +227,118 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
         </div>
       </section>
 
+      {/* バリエーション（カラー×サイズ） */}
+      <section className="rounded border border-gray-200 bg-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700">
+              バリエーション（カラー×サイズ）
+              <span className="ml-2 text-xs font-normal text-gray-400">任意</span>
+            </h2>
+            {hasVariants && (
+              <p className="mt-0.5 text-xs text-gray-400">
+                製作数・販売数は下の販売計画に自動反映されます
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setVariants((prev) => [...prev, newVariant()])}
+            className="rounded border border-blue-300 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+          >
+            + バリエーションを追加
+          </button>
+        </div>
+
+        {hasVariants ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead>
+                <tr className="border-b text-xs text-gray-500">
+                  <th className="pb-2 pr-2 text-left font-medium">カラー</th>
+                  <th className="pb-2 pr-2 text-left font-medium">サイズ</th>
+                  <th className="pb-2 pr-2 text-right font-medium">予定製作数</th>
+                  <th className="pb-2 pr-2 text-right font-medium">在庫数</th>
+                  <th className="pb-2 pr-2 text-right font-medium">販売数</th>
+                  <th className="pb-2"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {variants.map((v, i) => (
+                  <tr key={v.id}>
+                    <td className="py-1.5 pr-2">
+                      <input
+                        type="text"
+                        list="color-options"
+                        value={v.color}
+                        onChange={(e) => updateVariant(i, "color", e.target.value)}
+                        placeholder="例: ブラック"
+                        className="w-28 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                    </td>
+                    <td className="py-1.5 pr-2">
+                      <select
+                        value={v.size}
+                        onChange={(e) => updateVariant(i, "size", e.target.value)}
+                        className="w-20 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value="">—</option>
+                        {SIZE_OPTIONS.map((sz) => <option key={sz} value={sz}>{sz}</option>)}
+                      </select>
+                    </td>
+                    {(["plannedQuantity", "stockQuantity", "soldQuantity"] as const).map((field) => (
+                      <td key={field} className="py-1.5 pr-2">
+                        <input
+                          type="number" min="0" step="1"
+                          value={v[field]}
+                          onChange={(e) => updateVariant(i, field, Math.max(0, Number(e.target.value)))}
+                          className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
+                        />
+                      </td>
+                    ))}
+                    <td className="py-1.5">
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(i)}
+                        className="text-xs text-red-400 hover:text-red-600"
+                      >
+                        削除
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t text-xs text-gray-600">
+                  <td className="pt-2" colSpan={2}>合計</td>
+                  <td className="pt-2 pr-2 text-right font-semibold">{totalPlanned}個</td>
+                  <td className="pt-2 pr-2 text-right font-semibold">{totalStock}個</td>
+                  <td className="pt-2 pr-2 text-right font-semibold">{totalSold}個</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+            <datalist id="color-options">
+              {COLOR_SUGGESTIONS.map((c) => <option key={c} value={c} />)}
+            </datalist>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400">
+            カラーやサイズで在庫・製作数を管理する場合は「バリエーションを追加」してください。
+            設定しない場合は販売計画に直接入力できます。
+          </p>
+        )}
+
+        <input type="hidden" name="variants" value={JSON.stringify(variants)} />
+      </section>
+
       {/* 販売計画 */}
       <section className="rounded border border-gray-200 bg-white p-4">
         <h2 className="mb-1 text-sm font-semibold text-gray-700">販売計画</h2>
         <p className="mb-4 text-xs text-gray-400">
-          ここに入力する数値は計画値です。実績はAirレジから取り込みます。
+          {hasVariants
+            ? "製作数・販売数はバリエーションから自動集計されます。"
+            : "ここに入力する数値は計画値です。実績はAirレジから取り込みます。"}
         </p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div>
@@ -224,17 +348,33 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
             <input {...numInputProps("sellingPrice", s?.sellingPrice ?? 0)} required />
           </div>
           <div>
-            <label className="block text-xs text-gray-500" htmlFor="productionCount">
-              予定製作数（個）
-            </label>
-            <input {...numInputProps("productionCount", s?.productionCount ?? 0)} />
+            <label className="block text-xs text-gray-500">予定製作数（個）</label>
+            {hasVariants ? (
+              <>
+                <p className="mt-1 rounded border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                  {totalPlanned}
+                </p>
+                <input type="hidden" name="productionCount" value={totalPlanned} />
+              </>
+            ) : (
+              <input {...numInputProps("productionCount", s?.productionCount ?? 0)} />
+            )}
           </div>
           <div>
-            <label className="block text-xs text-gray-500" htmlFor="salesCount">
-              販売目標数（個）
-            </label>
-            <input {...numInputProps("salesCount", s?.salesCount ?? 0)} />
-            <p className="mt-0.5 text-xs text-gray-400">Airレジ連携後は実績を参照します</p>
+            <label className="block text-xs text-gray-500">販売目標数（個）</label>
+            {hasVariants ? (
+              <>
+                <p className="mt-1 rounded border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                  {totalSold}
+                </p>
+                <input type="hidden" name="salesCount" value={totalSold} />
+              </>
+            ) : (
+              <>
+                <input {...numInputProps("salesCount", s?.salesCount ?? 0)} />
+                <p className="mt-0.5 text-xs text-gray-400">Airレジ連携後は実績を参照します</p>
+              </>
+            )}
           </div>
         </div>
       </section>
