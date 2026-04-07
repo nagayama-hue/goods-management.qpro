@@ -49,7 +49,7 @@ export interface GoodsSales {
 
 // ─── バリエーション ───────────────────────────────────────────────────────────
 
-export const SIZE_OPTIONS = ["120", "S", "M", "L", "XL", "XXL"] as const;
+export const SIZE_OPTIONS = ["120", "140", "SS", "S", "M", "L", "XL", "XXL"] as const;
 export type GoodsSize = typeof SIZE_OPTIONS[number];
 
 export const COLOR_SUGGESTIONS = [
