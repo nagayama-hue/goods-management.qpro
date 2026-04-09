@@ -14,8 +14,11 @@ export function calcTotalCost(budget: GoodsBudget): number {
   );
 }
 
-/** 売上 = 販売価格 × 販売数 */
-export function calcRevenue(sales: GoodsSales): number {
+/** 売上 = 販売価格 × 販売数（バリアントに単価が設定されている場合は Σ(単価 × 販売数)） */
+export function calcRevenue(sales: GoodsSales, variants?: Goods["variants"]): number {
+  if (variants && variants.length > 0 && variants.some((v) => v.sellingPrice != null)) {
+    return variants.reduce((sum, v) => sum + (v.sellingPrice ?? sales.sellingPrice) * v.soldQuantity, 0);
+  }
   return sales.sellingPrice * sales.salesCount;
 }
 
@@ -38,7 +41,7 @@ export function calcStockCount(sales: GoodsSales): number {
 /** Goods に計算結果を付与して返す */
 export function calcGoods(goods: Goods): GoodsCalculated {
   const totalCost = calcTotalCost(goods.budget);
-  const revenue = calcRevenue(goods.sales);
+  const revenue = calcRevenue(goods.sales, goods.variants);
   const grossProfit = calcGrossProfit(revenue, totalCost);
   const grossMargin = calcGrossMargin(grossProfit, revenue);
   const stockCount = calcStockCount(goods.sales);

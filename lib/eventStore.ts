@@ -10,6 +10,12 @@ function ensureFile(): void {
   }
 }
 
+function atomicWrite(data: string): void {
+  const tmp = DATA_FILE + ".tmp";
+  fs.writeFileSync(tmp, data, "utf-8");
+  fs.renameSync(tmp, DATA_FILE);
+}
+
 export function getAllEvents(): EventTarget[] {
   ensureFile();
   try {
@@ -29,7 +35,7 @@ export function createEvent(data: Omit<EventTarget, "id">): EventTarget {
   const newEvent: EventTarget = { id, ...data };
   list.push(newEvent);
   list.sort((a, b) => a.date.localeCompare(b.date));
-  fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+  atomicWrite(JSON.stringify(list, null, 2));
   return newEvent;
 }
 
@@ -48,7 +54,16 @@ export function updateEvent(
   // capacity が未指定なら削除
   if (!data.capacity) delete updated.capacity;
   list[idx] = updated;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+  atomicWrite(JSON.stringify(list, null, 2));
+}
+
+/** 物販売上を大会の actual に加算する（未設定の場合は初期値として設定） */
+export function addToEventActual(id: string, amount: number): void {
+  const list = getAllEvents();
+  const idx  = list.findIndex((e) => e.id === id);
+  if (idx < 0) return;
+  list[idx] = { ...list[idx], actual: (list[idx].actual ?? 0) + amount };
+  atomicWrite(JSON.stringify(list, null, 2));
 }
 
 export function updateEventActual(
@@ -79,5 +94,5 @@ export function updateEventActual(
   }
 
   list[idx] = updated;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+  atomicWrite(JSON.stringify(list, null, 2));
 }

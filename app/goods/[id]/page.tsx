@@ -9,6 +9,7 @@ import { formatCurrency, formatMargin, formatNumber } from "@/lib/format";
 import { getRecommendedLink, getCandidateLinks } from "@/lib/goodsSupplierStore";
 import { getSupplierById, getAllSuppliers } from "@/lib/supplierStore";
 import { getOrderHistoryForGoods } from "@/lib/orderHistoryStore";
+import { getSalesRecordsByGoods } from "@/lib/salesRecordStore";
 import {
   getAirregiStockByCode,
   getAirregiSalesByCode,
@@ -57,6 +58,13 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
   const supplierMap       = Object.fromEntries(allSuppliers.map((s) => [s.id, s]));
 
   // Airレジ連携データ
+  const salesRecords      = getSalesRecordsByGoods(id).sort((a, b) =>
+    b.saleDate.localeCompare(a.saleDate) || b.createdAt.localeCompare(a.createdAt)
+  );
+  const salesRevenue      = salesRecords.reduce((s, r) => s + r.revenue, 0);
+  const salesGrossProfit  = salesRecords.reduce((s, r) => s + r.grossProfit, 0);
+  const salesQuantity     = salesRecords.reduce((s, r) => s + r.quantity, 0);
+
   const airCode           = g.airregiProductCode;
   const airProduct        = airCode ? getAirregiProductByCode(airCode) : undefined;
   const airStock          = airCode ? getAirregiStockByCode(airCode)   : undefined;
@@ -86,12 +94,20 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
           </Link>
           <h1 className="mt-1 text-xl font-semibold text-gray-900">{g.name}</h1>
         </div>
-        <Link
-          href={`/goods/${g.id}/edit`}
-          className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-        >
-          編集
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/goods/${g.id}/sales/new`}
+            className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+          >
+            ＋ 売上を登録
+          </Link>
+          <Link
+            href={`/goods/${g.id}/edit`}
+            className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            編集
+          </Link>
+        </div>
       </div>
 
       {/* 数値サマリー */}
@@ -99,8 +115,8 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
         {[
           { label: "予定販売価格",  value: formatCurrency(g.sales.sellingPrice), color: "text-gray-900" },
           { label: "想定売上",      value: formatCurrency(g.revenue),            color: "text-gray-900" },
-          { label: "想定粗利",      value: formatCurrency(g.grossProfit),        color: g.grossProfit >= 0 ? "text-green-700" : "text-red-600" },
-          { label: "想定粗利率",    value: formatMargin(g.grossMargin),          color: g.grossMargin >= 0.3 ? "text-green-700" : "text-yellow-600" },
+          { label: "計画利益",      value: formatCurrency(g.grossProfit),        color: g.grossProfit >= 0 ? "text-green-700" : "text-red-600" },
+          { label: "計画利益率",    value: formatMargin(g.grossMargin),          color: g.grossMargin >= 0.3 ? "text-green-700" : "text-yellow-600" },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded border border-gray-200 bg-white p-4">
             <p className="text-xs text-gray-500">{label}</p>
@@ -173,42 +189,74 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
       {/* バリエーション内訳 */}
       {g.variants && g.variants.length > 0 && (
         <section className="rounded border border-gray-200 bg-white p-5">
-          <h2 className="mb-4 text-sm font-semibold text-gray-700">バリエーション内訳</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">バリエーション内訳</h2>
+            <Link
+              href={`/goods/${g.id}/sales/new`}
+              className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+            >
+              + 売上を登録
+            </Link>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
+            <table className="w-full min-w-[700px] text-sm">
               <thead>
                 <tr className="border-b text-xs text-gray-500">
                   <th className="pb-2 pr-4 text-left font-medium">カラー</th>
                   <th className="pb-2 pr-4 text-left font-medium">サイズ</th>
+                  <th className="pb-2 pr-4 text-right font-medium">単価</th>
+                  <th className="pb-2 pr-4 text-right font-medium">原価</th>
                   <th className="pb-2 pr-4 text-right font-medium">予定製作数</th>
                   <th className="pb-2 pr-4 text-right font-medium">在庫数</th>
-                  <th className="pb-2 text-right font-medium">販売数</th>
+                  <th className="pb-2 pr-4 text-right font-medium">販売数</th>
+                  <th className="pb-2 text-right font-medium">累計粗利</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {g.variants.map((v) => (
-                  <tr key={v.id}>
-                    <td className="py-2 pr-4 text-gray-700">{v.color || "—"}</td>
-                    <td className="py-2 pr-4 text-gray-700">{v.size || "—"}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatNumber(v.plannedQuantity)} 個</td>
-                    <td className={`py-2 pr-4 text-right tabular-nums font-medium ${v.stockQuantity === 0 ? "text-red-600" : v.stockQuantity <= 5 ? "text-orange-600" : "text-gray-700"}`}>
-                      {formatNumber(v.stockQuantity)} 個
-                    </td>
-                    <td className="py-2 text-right tabular-nums text-gray-700">{formatNumber(v.soldQuantity)} 個</td>
-                  </tr>
-                ))}
+                {g.variants.map((v) => {
+                  const price = v.sellingPrice ?? g.sales.sellingPrice;
+                  const cost = v.unitCost ?? 0;
+                  const variantGrossProfit = (price - cost) * v.soldQuantity;
+                  return (
+                    <tr key={v.id}>
+                      <td className="py-2 pr-4 text-gray-700">{v.color || "—"}</td>
+                      <td className="py-2 pr-4 text-gray-700">{v.size || "—"}</td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-gray-700">
+                        {v.sellingPrice != null ? formatCurrency(v.sellingPrice) : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-gray-700">
+                        {v.unitCost != null ? formatCurrency(v.unitCost) : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatNumber(v.plannedQuantity)} 個</td>
+                      <td className={`py-2 pr-4 text-right tabular-nums font-medium ${v.stockQuantity === 0 ? "text-red-600" : v.stockQuantity <= 5 ? "text-orange-600" : "text-gray-700"}`}>
+                        {formatNumber(v.stockQuantity)} 個
+                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatNumber(v.soldQuantity)} 個</td>
+                      <td className={`py-2 text-right tabular-nums font-medium ${variantGrossProfit >= 0 ? "text-green-700" : "text-red-600"}`}>
+                        {formatCurrency(variantGrossProfit)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="border-t text-xs font-semibold text-gray-700">
-                  <td className="pt-2 pr-4" colSpan={2}>合計</td>
+                  <td className="pt-2 pr-4" colSpan={4}>合計</td>
                   <td className="pt-2 pr-4 text-right tabular-nums">
                     {formatNumber(g.variants.reduce((s, v) => s + v.plannedQuantity, 0))} 個
                   </td>
                   <td className="pt-2 pr-4 text-right tabular-nums">
                     {formatNumber(g.variants.reduce((s, v) => s + v.stockQuantity, 0))} 個
                   </td>
-                  <td className="pt-2 text-right tabular-nums">
+                  <td className="pt-2 pr-4 text-right tabular-nums">
                     {formatNumber(g.variants.reduce((s, v) => s + v.soldQuantity, 0))} 個
+                  </td>
+                  <td className="pt-2 text-right tabular-nums">
+                    {formatCurrency(g.variants.reduce((s, v) => {
+                      const price = v.sellingPrice ?? g.sales.sellingPrice;
+                      const cost = v.unitCost ?? 0;
+                      return s + (price - cost) * v.soldQuantity;
+                    }, 0))}
                   </td>
                 </tr>
               </tfoot>
@@ -836,6 +884,108 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
           )}
         </section>
       )}
+
+      {/* 売上実績履歴 */}
+      <section className="rounded border border-gray-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">売上実績履歴</h2>
+          <div className="flex items-center gap-3">
+            {salesRecords.length > 0 && (
+              <Link
+                href={`/sales?goods=${encodeURIComponent(g.name)}`}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                一覧で見る →
+              </Link>
+            )}
+            <Link
+              href={`/goods/${g.id}/sales/new`}
+              className="rounded border border-green-300 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+            >
+              ＋ 売上を登録
+            </Link>
+          </div>
+        </div>
+
+        {salesRecords.length === 0 ? (
+          <p className="py-6 text-center text-sm text-gray-400">
+            売上実績がまだ登録されていません。
+          </p>
+        ) : (
+          <>
+            {/* サマリー */}
+            <div className="mb-4 grid grid-cols-3 gap-3 rounded border border-gray-100 bg-gray-50 p-3">
+              <div>
+                <p className="text-xs text-gray-500">累計売上</p>
+                <p className="text-sm font-bold text-gray-900">{formatCurrency(salesRevenue)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">累計粗利</p>
+                <p className={`text-sm font-bold ${salesGrossProfit >= 0 ? "text-green-700" : "text-red-600"}`}>
+                  {formatCurrency(salesGrossProfit)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">累計販売数</p>
+                <p className="text-sm font-bold text-gray-900">{salesQuantity.toLocaleString()}個</p>
+              </div>
+            </div>
+
+            {/* 履歴テーブル */}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] text-sm">
+                <thead>
+                  <tr className="border-b text-xs text-gray-500">
+                    <th className="pb-2 pr-3 text-left font-medium">販売日</th>
+                    <th className="pb-2 pr-3 text-left font-medium">大会・販売場所</th>
+                    <th className="pb-2 pr-3 text-left font-medium">バリエーション</th>
+                    <th className="pb-2 pr-3 text-right font-medium">数量</th>
+                    <th className="pb-2 pr-3 text-right font-medium">売上</th>
+                    <th className="pb-2 pr-3 text-right font-medium">粗利</th>
+                    <th className="pb-2 text-left font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {salesRecords.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <td className="py-2 pr-3 tabular-nums text-gray-600">{r.saleDate}</td>
+                      <td className="py-2 pr-3 text-gray-700">
+                        {r.eventId ? (
+                          <Link href={`/events/${r.eventId}`} className="hover:text-blue-600 hover:underline">
+                            {r.eventName ?? r.location}
+                          </Link>
+                        ) : r.location}
+                      </td>
+                      <td className="py-2 pr-3 text-gray-600">{r.variantLabel ?? "—"}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-700">{r.quantity}個</td>
+                      <td className="py-2 pr-3 text-right tabular-nums font-medium text-gray-800">{formatCurrency(r.revenue)}</td>
+                      <td className={`py-2 pr-3 text-right tabular-nums font-medium ${r.grossProfit >= 0 ? "text-green-700" : "text-red-600"}`}>
+                        {formatCurrency(r.grossProfit)}
+                      </td>
+                      <td className="whitespace-nowrap py-2">
+                        <div className="flex gap-3">
+                          <Link
+                            href={`/sales/${r.id}/edit?from=/goods/${g.id}`}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            編集
+                          </Link>
+                          <Link
+                            href={`/sales/${r.id}/delete?from=/goods/${g.id}`}
+                            className="text-xs text-red-500 hover:underline"
+                          >
+                            削除
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
 
       {/* HIT商品のみ派生案セクションを表示 */}
       {evaluation.level === "OK" && (

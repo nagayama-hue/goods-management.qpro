@@ -64,6 +64,8 @@ export interface GoodsVariant {
   plannedQuantity: number;     // 予定製作数
   stockQuantity: number;       // 在庫数
   soldQuantity: number;        // 販売数
+  sellingPrice?: number;       // バリアント別単価（未設定時は Goods.sales.sellingPrice で代替）
+  unitCost?: number;           // バリアント別原価（未設定時は 0 として計算）
 }
 
 export interface Goods {

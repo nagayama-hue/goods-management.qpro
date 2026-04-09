@@ -127,7 +127,10 @@ export default async function EventResultsPage({ searchParams }: Props) {
 
           {/* 売上カード */}
           <div className="space-y-2 rounded border border-gray-200 bg-white p-4">
-            <p className="text-xs font-medium text-gray-500">売上</p>
+            <p className="text-xs font-medium text-gray-500">
+              その他売上（入場料等・手動入力）
+              <span className="ml-1 font-normal text-gray-400">※物販は別集計</span>
+            </p>
             <div className="flex items-end justify-between gap-3">
               <div>
                 <p className="text-xs text-gray-400">目標</p>
@@ -249,7 +252,7 @@ export default async function EventResultsPage({ searchParams }: Props) {
                   売上目標
                 </th>
                 <th className="px-4 py-2.5 text-right font-medium text-gray-500">
-                  実績売上
+                  その他売上
                 </th>
                 <th className="px-4 py-2.5 text-center font-medium text-gray-500">
                   売上達成率
@@ -358,7 +361,7 @@ export default async function EventResultsPage({ searchParams }: Props) {
                   売上目標
                 </th>
                 <th className="px-4 py-2.5 text-right font-medium text-gray-500">
-                  実績売上
+                  その他売上
                 </th>
                 <th className="px-4 py-2.5 text-center font-medium text-gray-500">
                   売上達成率

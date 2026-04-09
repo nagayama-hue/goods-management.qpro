@@ -182,7 +182,7 @@ export default async function EventsPage({ searchParams }: Props) {
                       <th className="px-4 py-2 font-medium text-gray-400">大会・イベント名</th>
                       <th className="px-4 py-2 text-right font-medium text-gray-400">動員目標</th>
                       <th className="px-4 py-2 text-right font-medium text-gray-400">売上目標</th>
-                      <th className="px-4 py-2 font-medium text-gray-400">実績入力（動員／売上）</th>
+                      <th className="px-4 py-2 font-medium text-gray-400">その他売上入力（入場料等）</th>
                       <th className="px-4 py-2 font-medium text-gray-400">状態</th>
                       <th className="px-4 py-2 font-medium text-gray-400"></th>
                     </tr>
@@ -216,7 +216,12 @@ export default async function EventsPage({ searchParams }: Props) {
                             </span>
                           </td>
                           <td className="px-4 py-2.5 font-medium text-gray-800">
-                            {ev.name}
+                            <Link
+                              href={`/events/${ev.id}`}
+                              className="hover:text-blue-600 hover:underline"
+                            >
+                              {ev.name}
+                            </Link>
                           </td>
                           <td className="px-4 py-2.5 text-right tabular-nums text-gray-500">
                             {ev.capacity ? `${ev.capacity.toLocaleString()}人` : "—"}
@@ -244,7 +249,7 @@ export default async function EventsPage({ searchParams }: Props) {
                                 defaultValue={ev.actual ?? ""}
                                 min={0}
                                 step={100}
-                                placeholder="売上実績"
+                                placeholder="その他売上"
                                 className="w-28 rounded border border-gray-200 px-2 py-1 text-right tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-400"
                               />
                               <button
@@ -264,12 +269,20 @@ export default async function EventsPage({ searchParams }: Props) {
                             )}
                           </td>
                           <td className="px-4 py-2.5">
-                            <Link
-                              href={`/events/${ev.id}/edit`}
-                              className="text-xs text-gray-400 hover:text-blue-600 hover:underline"
-                            >
-                              編集
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/events/${ev.id}`}
+                                className="text-xs text-green-600 hover:underline"
+                              >
+                                物販入力
+                              </Link>
+                              <Link
+                                href={`/events/${ev.id}/edit`}
+                                className="text-xs text-gray-400 hover:text-blue-600 hover:underline"
+                              >
+                                編集
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );

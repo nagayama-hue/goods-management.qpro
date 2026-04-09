@@ -98,7 +98,7 @@ export default function GoodsTable({ goods, sortKey, sortDir, scores, planning, 
             <th className="px-3 py-2 text-left font-medium text-gray-500">ステータス</th>
             <SortableHeader col="sellingPrice" label="予定販売価格" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
             <th className="px-3 py-2 text-right font-medium text-gray-500">合計コスト</th>
-            <SortableHeader col="grossProfit" label="想定粗利" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
+            <SortableHeader col="grossProfit" label="計画利益" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
             <SortableHeader col="stockCount"  label="在庫"    current={sortKey} dir={sortDir} planning={planning} className="text-right" />
             <th className="px-3 py-2"></th>
           </tr>

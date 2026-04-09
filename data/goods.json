@@ -20,11 +20,23 @@
     },
     "sales": {
       "sellingPrice": 3500,
-      "productionCount": 200,
-      "salesCount": 150
+      "productionCount": 30,
+      "salesCount": 0
     },
     "createdAt": "2026-01-15T00:00:00.000Z",
-    "updatedAt": "2026-03-01T00:00:00.000Z"
+    "updatedAt": "2026-04-09T07:25:01.161Z",
+    "variants": [
+      {
+        "id": "v-1775654694151-5hjy",
+        "color": "ブラック",
+        "size": "M",
+        "plannedQuantity": 30,
+        "stockQuantity": 30,
+        "soldQuantity": 0,
+        "sellingPrice": 3500,
+        "unitCost": 1500
+      }
+    ]
   },
   {
     "id": "sample-002",

@@ -60,7 +60,7 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
 
   const [variants, setVariants] = useState<GoodsVariant[]>(defaultValues?.variants ?? []);
 
-  const updateVariant = (i: number, field: keyof GoodsVariant, value: string | number) =>
+  const updateVariant = (i: number, field: keyof GoodsVariant, value: string | number | undefined) =>
     setVariants((prev) => prev.map((v, idx) => idx === i ? { ...v, [field]: value } : v));
   const removeVariant = (i: number) =>
     setVariants((prev) => prev.filter((_, idx) => idx !== i));
@@ -252,11 +252,13 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
 
         {hasVariants ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="w-full min-w-[780px] text-sm">
               <thead>
                 <tr className="border-b text-xs text-gray-500">
                   <th className="pb-2 pr-2 text-left font-medium">カラー</th>
                   <th className="pb-2 pr-2 text-left font-medium">サイズ</th>
+                  <th className="pb-2 pr-2 text-right font-medium">単価（円）</th>
+                  <th className="pb-2 pr-2 text-right font-medium">原価（円）</th>
                   <th className="pb-2 pr-2 text-right font-medium">予定製作数</th>
                   <th className="pb-2 pr-2 text-right font-medium">在庫数</th>
                   <th className="pb-2 pr-2 text-right font-medium">販売数</th>
@@ -286,6 +288,24 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
                         {SIZE_OPTIONS.map((sz) => <option key={sz} value={sz}>{sz}</option>)}
                       </select>
                     </td>
+                    <td className="py-1.5 pr-2">
+                      <input
+                        type="number" min="0" step="1"
+                        value={v.sellingPrice ?? ""}
+                        onChange={(e) => updateVariant(i, "sellingPrice", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
+                        placeholder="—"
+                        className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                    </td>
+                    <td className="py-1.5 pr-2">
+                      <input
+                        type="number" min="0" step="1"
+                        value={v.unitCost ?? ""}
+                        onChange={(e) => updateVariant(i, "unitCost", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
+                        placeholder="—"
+                        className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                    </td>
                     {(["plannedQuantity", "stockQuantity", "soldQuantity"] as const).map((field) => (
                       <td key={field} className="py-1.5 pr-2">
                         <input
@@ -310,7 +330,7 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
               </tbody>
               <tfoot>
                 <tr className="border-t text-xs text-gray-600">
-                  <td className="pt-2" colSpan={2}>合計</td>
+                  <td className="pt-2" colSpan={4}>合計</td>
                   <td className="pt-2 pr-2 text-right font-semibold">{totalPlanned}個</td>
                   <td className="pt-2 pr-2 text-right font-semibold">{totalStock}個</td>
                   <td className="pt-2 pr-2 text-right font-semibold">{totalSold}個</td>
