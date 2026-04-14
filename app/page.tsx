@@ -12,7 +12,7 @@ import { PRIORITY_OPTIONS, PRIORITY_STYLES } from "@/lib/constants";
 
 type SortDir = "asc" | "desc";
 
-const SORT_KEYS: SortKey[] = ["revenue", "grossProfit", "stockCount", "sellingPrice", "score"];
+const SORT_KEYS: SortKey[] = ["name", "revenue", "grossProfit", "stockCount", "sellingPrice", "score"];
 
 function sortGoods(
   goods: GoodsCalculated[],
@@ -21,6 +21,11 @@ function sortGoods(
   scores: Record<string, GoodsScore>
 ): GoodsCalculated[] {
   return [...goods].sort((a, b) => {
+    if (key === "name") {
+      return dir === "asc"
+        ? a.name.localeCompare(b.name, "ja")
+        : b.name.localeCompare(a.name, "ja");
+    }
     let va: number, vb: number;
     if (key === "score") {
       va = scores[a.id]?.score ?? 0;
@@ -37,7 +42,7 @@ function sortGoods(
 }
 
 interface Props {
-  searchParams: Promise<{ sort?: string; dir?: string; planning?: string }>;
+  searchParams: Promise<{ sort?: string; dir?: string; planning?: string; q?: string }>;
 }
 
 const FILTER_TABS: { value: string; label: string }[] = [
@@ -46,10 +51,11 @@ const FILTER_TABS: { value: string; label: string }[] = [
 ];
 
 export default async function HomePage({ searchParams }: Props) {
-  const { sort, dir, planning } = await searchParams;
+  const { sort, dir, planning, q } = await searchParams;
   const sortKey: SortKey  = SORT_KEYS.includes(sort as SortKey) ? (sort as SortKey) : "grossProfit";
   const sortDir: SortDir  = dir === "asc" ? "asc" : "desc";
   const planningFilter    = planning ?? "";
+  const nameQuery         = q?.trim() ?? "";
 
   const allGoods = getAllGoods().map(calcGoods);
 
@@ -88,10 +94,13 @@ export default async function HomePage({ searchParams }: Props) {
     })
   );
 
-  // 優先度フィルター
-  const filtered = planningFilter
-    ? allGoods.filter((g) => g.priority === (planningFilter as Priority))
+  // 名前検索 → 優先度フィルター
+  const nameFiltered = nameQuery
+    ? allGoods.filter((g) => g.name.includes(nameQuery))
     : allGoods;
+  const filtered = planningFilter
+    ? nameFiltered.filter((g) => g.priority === (planningFilter as Priority))
+    : nameFiltered;
 
   const sorted = sortGoods(filtered, sortKey, sortDir, scoresMap);
 
@@ -151,13 +160,42 @@ export default async function HomePage({ searchParams }: Props) {
         </div>
       )}
 
+      {/* 名前検索 */}
+      <form method="GET" className="flex gap-2">
+        {planningFilter && <input type="hidden" name="planning" value={planningFilter} />}
+        <input type="hidden" name="sort" value={sortKey} />
+        <input type="hidden" name="dir" value={sortDir} />
+        <input
+          type="search"
+          name="q"
+          defaultValue={nameQuery}
+          placeholder="商品名で検索..."
+          className="w-64 rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+        >
+          検索
+        </button>
+        {nameQuery && (
+          <Link
+            href={`?sort=${sortKey}&dir=${sortDir}${planningFilter ? `&planning=${encodeURIComponent(planningFilter)}` : ""}`}
+            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50"
+          >
+            クリア
+          </Link>
+        )}
+      </form>
+
       {/* 優先度フィルタータブ */}
       <div className="flex flex-wrap gap-2">
         {FILTER_TABS.map((tab) => {
           const isActive = tab.value === planningFilter;
+          const qParam   = nameQuery ? `&q=${encodeURIComponent(nameQuery)}` : "";
           const href = tab.value
-            ? `?planning=${encodeURIComponent(tab.value)}&sort=${sortKey}&dir=${sortDir}`
-            : `?sort=${sortKey}&dir=${sortDir}`;
+            ? `?planning=${encodeURIComponent(tab.value)}&sort=${sortKey}&dir=${sortDir}${qParam}`
+            : `?sort=${sortKey}&dir=${sortDir}${qParam}`;
           const activeStyle = tab.value
             ? PRIORITY_STYLES[tab.value as Priority]
             : "bg-gray-800 text-white";
@@ -190,6 +228,7 @@ export default async function HomePage({ searchParams }: Props) {
           sortDir={sortDir}
           scores={scoresMap}
           planning={planningFilter || undefined}
+          q={nameQuery || undefined}
           airregiSyncMap={airregiSyncMap}
         />
       </div>

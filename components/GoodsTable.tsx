@@ -9,7 +9,7 @@ import { evaluateGoods } from "@/lib/evaluation";
 import { isAiSuggested } from "@/lib/parseAiMemo";
 import { formatCurrency, formatNumber } from "@/lib/format";
 
-export type SortKey = "revenue" | "grossProfit" | "stockCount" | "sellingPrice" | "score";
+export type SortKey = "name" | "revenue" | "grossProfit" | "stockCount" | "sellingPrice" | "score";
 type SortDir = "asc" | "desc";
 
 /** Airレジ連携状態（商品ID → 連携情報） */
@@ -28,6 +28,8 @@ interface Props {
   scores:   Record<string, GoodsScore>;
   /** 優先度フィルターが選択中の場合に sort href に付与する */
   planning?: string;
+  /** 名前検索クエリ（sort href に引き継ぐ） */
+  q?: string;
   /** Airレジ連携状態マップ（商品ID → 連携情報） */
   airregiSyncMap?: Record<string, AirregiSyncInfo>;
 }
@@ -36,13 +38,13 @@ function sortHref(
   col: SortKey,
   current: SortKey,
   dir: SortDir,
-  planning?: string
+  planning?: string,
+  q?: string,
 ): string {
   const planningParam = planning ? `&planning=${encodeURIComponent(planning)}` : "";
-  if (col === current) {
-    return `?sort=${col}&dir=${dir === "desc" ? "asc" : "desc"}${planningParam}`;
-  }
-  return `?sort=${col}&dir=desc${planningParam}`;
+  const qParam        = q        ? `&q=${encodeURIComponent(q)}`              : "";
+  const nextDir       = col === current ? (dir === "desc" ? "asc" : "desc") : (col === "name" ? "asc" : "desc");
+  return `?sort=${col}&dir=${nextDir}${planningParam}${qParam}`;
 }
 
 function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: SortDir }) {
@@ -51,20 +53,21 @@ function SortIcon({ col, current, dir }: { col: SortKey; current: SortKey; dir: 
 }
 
 function SortableHeader({
-  col, label, current, dir, planning, className,
+  col, label, current, dir, planning, q, className,
 }: {
   col:       SortKey;
   label:     string;
   current:   SortKey;
   dir:       SortDir;
   planning?: string;
+  q?:        string;
   className?: string;
 }) {
   const active = col === current;
   return (
     <th className={`px-3 py-2 font-medium ${className ?? ""}`}>
       <Link
-        href={sortHref(col, current, dir, planning)}
+        href={sortHref(col, current, dir, planning, q)}
         className={`inline-flex items-center gap-0.5 hover:text-gray-800 ${
           active ? "text-blue-600" : "text-gray-500"
         }`}
@@ -76,7 +79,7 @@ function SortableHeader({
   );
 }
 
-export default function GoodsTable({ goods, sortKey, sortDir, scores, planning, airregiSyncMap }: Props) {
+export default function GoodsTable({ goods, sortKey, sortDir, scores, planning, q, airregiSyncMap }: Props) {
   if (goods.length === 0) {
     return (
       <div className="rounded border border-dashed border-gray-300 py-16 text-center text-gray-400">
@@ -90,16 +93,16 @@ export default function GoodsTable({ goods, sortKey, sortDir, scores, planning, 
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50 text-xs">
-            <th className="px-3 py-2 text-left font-medium text-gray-500">商品名</th>
+            <SortableHeader col="name" label="商品名" current={sortKey} dir={sortDir} planning={planning} q={q} className="text-left" />
             <th className="px-3 py-2 text-left font-medium text-gray-500">企画優先度</th>
             <th className="px-3 py-2 text-left font-medium text-gray-500">評価</th>
-            <SortableHeader col="score" label="スコア" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
+            <SortableHeader col="score"        label="スコア"      current={sortKey} dir={sortDir} planning={planning} q={q} className="text-right" />
             <th className="px-3 py-2 text-left font-medium text-gray-500">カテゴリ</th>
             <th className="px-3 py-2 text-left font-medium text-gray-500">ステータス</th>
-            <SortableHeader col="sellingPrice" label="予定販売価格" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
+            <SortableHeader col="sellingPrice" label="予定販売価格" current={sortKey} dir={sortDir} planning={planning} q={q} className="text-right" />
             <th className="px-3 py-2 text-right font-medium text-gray-500">合計コスト</th>
-            <SortableHeader col="grossProfit" label="計画利益" current={sortKey} dir={sortDir} planning={planning} className="text-right" />
-            <SortableHeader col="stockCount"  label="在庫"    current={sortKey} dir={sortDir} planning={planning} className="text-right" />
+            <SortableHeader col="grossProfit"  label="計画利益"    current={sortKey} dir={sortDir} planning={planning} q={q} className="text-right" />
+            <SortableHeader col="stockCount"   label="在庫"        current={sortKey} dir={sortDir} planning={planning} q={q} className="text-right" />
             <th className="px-3 py-2"></th>
           </tr>
         </thead>
