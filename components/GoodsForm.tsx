@@ -65,6 +65,9 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
   const removeVariant = (i: number) =>
     setVariants((prev) => prev.filter((_, idx) => idx !== i));
 
+  /** 在庫管理用のデフォルトバリアント（標準 / FREE）かどうかを判定 */
+  const isDefaultVariant = (v: GoodsVariant) => v.color === "標準" && v.size === "FREE";
+
   const totalPlanned = variants.reduce((s, v) => s + (v.plannedQuantity || 0), 0);
   const totalStock   = variants.reduce((s, v) => s + (v.stockQuantity   || 0), 0);
   const totalSold    = variants.reduce((s, v) => s + (v.soldQuantity    || 0), 0);
@@ -266,67 +269,91 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {variants.map((v, i) => (
-                  <tr key={v.id}>
-                    <td className="py-1.5 pr-2">
-                      <input
-                        type="text"
-                        list="color-options"
-                        value={v.color}
-                        onChange={(e) => updateVariant(i, "color", e.target.value)}
-                        placeholder="例: ブラック"
-                        className="w-28 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                      />
-                    </td>
-                    <td className="py-1.5 pr-2">
-                      <select
-                        value={v.size}
-                        onChange={(e) => updateVariant(i, "size", e.target.value)}
-                        className="w-20 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                      >
-                        <option value="">—</option>
-                        {SIZE_OPTIONS.map((sz) => <option key={sz} value={sz}>{sz}</option>)}
-                      </select>
-                    </td>
-                    <td className="py-1.5 pr-2">
-                      <input
-                        type="number" min="0" step="1"
-                        value={v.sellingPrice ?? ""}
-                        onChange={(e) => updateVariant(i, "sellingPrice", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
-                        placeholder="—"
-                        className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
-                      />
-                    </td>
-                    <td className="py-1.5 pr-2">
-                      <input
-                        type="number" min="0" step="1"
-                        value={v.unitCost ?? ""}
-                        onChange={(e) => updateVariant(i, "unitCost", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
-                        placeholder="—"
-                        className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
-                      />
-                    </td>
-                    {(["plannedQuantity", "stockQuantity", "soldQuantity"] as const).map((field) => (
-                      <td key={field} className="py-1.5 pr-2">
+                {variants.map((v, i) => {
+                  const isDefault = isDefaultVariant(v);
+                  return (
+                    <tr key={v.id} className={isDefault ? "bg-gray-50/50" : undefined}>
+                      {/* カラー */}
+                      <td className="py-1.5 pr-2">
+                        {isDefault ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-28 rounded border border-gray-200 bg-gray-100 px-2 py-1 text-sm text-gray-500">
+                              {v.color}
+                            </span>
+                            <span className="rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500">在庫管理用</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            list="color-options"
+                            value={v.color}
+                            onChange={(e) => updateVariant(i, "color", e.target.value)}
+                            placeholder="例: ブラック"
+                            className="w-28 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                          />
+                        )}
+                      </td>
+                      {/* サイズ */}
+                      <td className="py-1.5 pr-2">
+                        {isDefault ? (
+                          <span className="inline-block w-20 rounded border border-gray-200 bg-gray-100 px-2 py-1 text-sm text-gray-500">
+                            {v.size}
+                          </span>
+                        ) : (
+                          <select
+                            value={v.size}
+                            onChange={(e) => updateVariant(i, "size", e.target.value)}
+                            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                          >
+                            <option value="">—</option>
+                            {SIZE_OPTIONS.map((sz) => <option key={sz} value={sz}>{sz}</option>)}
+                          </select>
+                        )}
+                      </td>
+                      {/* 単価・原価 */}
+                      <td className="py-1.5 pr-2">
                         <input
                           type="number" min="0" step="1"
-                          value={v[field]}
-                          onChange={(e) => updateVariant(i, field, Math.max(0, Number(e.target.value)))}
+                          value={v.sellingPrice ?? ""}
+                          onChange={(e) => updateVariant(i, "sellingPrice", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
+                          placeholder="—"
                           className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
                         />
                       </td>
-                    ))}
-                    <td className="py-1.5">
-                      <button
-                        type="button"
-                        onClick={() => removeVariant(i)}
-                        className="text-xs text-red-400 hover:text-red-600"
-                      >
-                        削除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="py-1.5 pr-2">
+                        <input
+                          type="number" min="0" step="1"
+                          value={v.unitCost ?? ""}
+                          onChange={(e) => updateVariant(i, "unitCost", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))}
+                          placeholder="—"
+                          className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
+                        />
+                      </td>
+                      {/* 数量（編集可） */}
+                      {(["plannedQuantity", "stockQuantity", "soldQuantity"] as const).map((field) => (
+                        <td key={field} className="py-1.5 pr-2">
+                          <input
+                            type="number" min="0" step="1"
+                            value={v[field]}
+                            onChange={(e) => updateVariant(i, field, Math.max(0, Number(e.target.value)))}
+                            className="w-20 rounded border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:outline-none"
+                          />
+                        </td>
+                      ))}
+                      <td className="py-1.5">
+                        {!isDefault && (
+                          <button
+                            type="button"
+                            onClick={() => removeVariant(i)}
+                            className="text-xs text-red-400 hover:text-red-600"
+                          >
+                            削除
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="border-t text-xs text-gray-600">
@@ -344,8 +371,8 @@ export default function GoodsForm({ defaultValues, action, submitLabel, cancelHr
           </div>
         ) : (
           <p className="text-xs text-gray-400">
-            カラーやサイズで在庫・製作数を管理する場合は「バリエーションを追加」してください。
-            設定しない場合は販売計画に直接入力できます。
+            カラーやサイズで在庫を管理する場合は「バリエーションを追加」してください。
+            設定しない場合は「標準 / FREE」で在庫が1本管理されます。
           </p>
         )}
 

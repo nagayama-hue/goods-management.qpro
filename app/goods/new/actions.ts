@@ -22,8 +22,24 @@ export async function createGoods(
     if (Array.isArray(parsed)) variants = parsed;
   } catch { /* ignore */ }
 
+  const goodsId         = `goods-${Date.now()}`;
+  const productionCount = Number(formData.get("productionCount") ?? 0);
+  const salesCount      = Number(formData.get("salesCount") ?? 0);
+
+  // バリエーション未設定の場合「標準 / FREE」を追加（在庫管理を variant ベースで統一）
+  if (variants.length === 0) {
+    variants = [{
+      id: `v-std-${goodsId}`,
+      color: "標準",
+      size: "FREE",
+      plannedQuantity: productionCount,
+      stockQuantity: Math.max(0, productionCount - salesCount),
+      soldQuantity: salesCount,
+    }];
+  }
+
   const goods: Goods = {
-    id: `goods-${Date.now()}`,
+    id: goodsId,
     name,
     category: (formData.get("category") as GoodsCategory) ?? "その他",
     concept: formData.get("concept")?.toString() ?? "",
@@ -43,10 +59,10 @@ export async function createGoods(
     },
     sales: {
       sellingPrice: Number(formData.get("sellingPrice") ?? 0),
-      productionCount: Number(formData.get("productionCount") ?? 0),
-      salesCount: Number(formData.get("salesCount") ?? 0),
+      productionCount,
+      salesCount,
     },
-    ...(variants.length > 0 && { variants }),
+    variants,
     createdAt: now,
     updatedAt: now,
   };
