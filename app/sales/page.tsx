@@ -145,6 +145,7 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
             <thead>
               <tr className="border-b bg-gray-50 text-xs text-gray-500">
                 <th className="px-4 py-3 text-left font-medium">販売日</th>
+                <th className="px-4 py-3 text-left font-medium">チャネル</th>
                 <th className="px-4 py-3 text-left font-medium">大会・販売場所</th>
                 <th className="px-4 py-3 text-left font-medium">商品名</th>
                 <th className="px-4 py-3 text-left font-medium">カラー</th>
@@ -161,6 +162,17 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-4 py-3 tabular-nums text-gray-600">
                     {r.saleDate}
+                  </td>
+                  <td className="px-4 py-3">
+                    {(!r.channel || r.channel === "event") && (
+                      <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">大会</span>
+                    )}
+                    {r.channel === "ec" && (
+                      <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">EC</span>
+                    )}
+                    {r.channel === "other" && (
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">単独</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-700">
                     {r.eventId ? (
@@ -181,6 +193,16 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
                     >
                       {r.goodsName}
                     </Link>
+                    {r.saleType && r.saleType !== "normal" && (
+                      <span className={`ml-2 rounded px-1.5 py-0.5 text-xs font-medium ${
+                        r.saleType === "campaign" ? "bg-orange-100 text-orange-700" :
+                        r.saleType === "bundle"   ? "bg-teal-100 text-teal-700" :
+                        "bg-red-100 text-red-600"
+                      }`}>
+                        {r.saleType === "campaign" ? r.campaignName || "企画" :
+                         r.saleType === "bundle"   ? "セット" : "値引き"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{r.color ?? "—"}</td>
                   <td className="px-4 py-3 text-gray-600">{r.size ?? "—"}</td>
@@ -211,7 +233,7 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
             </tbody>
             <tfoot>
               <tr className="border-t bg-gray-50 text-xs font-semibold text-gray-700">
-                <td className="px-4 py-3" colSpan={5}>合計（{records.length}件）</td>
+                <td className="px-4 py-3" colSpan={6}>合計（{records.length}件）</td>
                 <td className="px-4 py-3 text-right tabular-nums">{totalQuantity}個</td>
                 <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(totalRevenue)}</td>

@@ -112,6 +112,7 @@ export default function EcResultsPage() {
         <Link href="/ec"           className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">予算管理表</Link>
         <Link href="/ec/campaigns" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">企画管理</Link>
         <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">実績管理</span>
+        <Link href="/ec/sales"     className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">売上明細</Link>
       </div>
 
       {/* ── Section A: 年間サマリー ──────────────────────────────── */}

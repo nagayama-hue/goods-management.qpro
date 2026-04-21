@@ -5,19 +5,27 @@ import Link from "next/link";
 import type { Goods } from "@/types/goods";
 import type { EventTarget } from "@/types/event";
 
+const SALE_TYPE_LABELS: Record<string, string> = {
+  normal:   "通常販売",
+  campaign: "企画販売",
+  bundle:   "セット販売",
+  discount: "値引き販売",
+};
+
 interface Props {
   event: EventTarget;
   goodsList: Goods[];
+  initialBundleId?: string;
+  savedBundle?: boolean;
   action: (
     prevState: { error: string } | null,
     formData: FormData
   ) => Promise<{ error: string } | null>;
 }
 
-export default function EventSalesForm({ event, goodsList, action }: Props) {
+export default function EventSalesForm({ event, goodsList, initialBundleId, savedBundle, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, null);
 
-  // バリアントを持つ商品のみ選択肢に出す（バリアントなし商品は単価設定が曖昧なので除外しない）
   const [selectedGoodsId, setSelectedGoodsId] = useState<string>(goodsList[0]?.id ?? "");
   const selectedGoods = useMemo(
     () => goodsList.find((g) => g.id === selectedGoodsId),
@@ -27,21 +35,33 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
   const variants = selectedGoods?.variants ?? [];
   const hasVariants = variants.length > 0;
 
-  // カラーの選択肢
   const colorOptions = useMemo(
     () => [...new Set(variants.map((v) => v.color).filter(Boolean))],
     [variants]
   );
 
-  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedColor,     setSelectedColor]     = useState<string>("");
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
+  const [sellingPrice,      setSellingPrice]      = useState<number>(
+    goodsList[0]?.sales.sellingPrice ?? 0
+  );
+  const [listPrice,  setListPrice]  = useState<number>(goodsList[0]?.sales.sellingPrice ?? 0);
+  const [unitCost,   setUnitCost]   = useState<number>(0);
+  const [quantity,   setQuantity]   = useState<number>(1);
 
-  // 商品変更時にバリアント選択をリセット
+  // 販売種別
+  const [saleType,       setSaleType]      = useState<string>(initialBundleId ? "bundle" : "normal");
+  const [campaignName,   setCampaignName]  = useState<string>("");
+  const [bundleIdValue,  setBundleIdValue] = useState<string>(initialBundleId ?? "");
+  const [bundleIdLocked, setBundleIdLocked] = useState<boolean>(!!initialBundleId);
+
   function handleGoodsChange(id: string) {
     setSelectedGoodsId(id);
     setSelectedColor("");
     setSelectedVariantId("");
-    setSellingPrice(goodsList.find((g) => g.id === id)?.sales.sellingPrice ?? 0);
+    const price = goodsList.find((g) => g.id === id)?.sales.sellingPrice ?? 0;
+    setSellingPrice(price);
+    setListPrice(price);
     setUnitCost(0);
   }
 
@@ -50,7 +70,9 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
     const first = variants.find((v) => v.color === color);
     if (first) {
       setSelectedVariantId(first.id);
-      setSellingPrice(first.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0);
+      const price = first.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0;
+      setSellingPrice(price);
+      setListPrice(price);
       setUnitCost(first.unitCost ?? 0);
     }
   }
@@ -59,7 +81,9 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
     setSelectedVariantId(variantId);
     const v = variants.find((vv) => vv.id === variantId);
     if (v) {
-      setSellingPrice(v.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0);
+      const price = v.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0;
+      setSellingPrice(price);
+      setListPrice(price);
       setUnitCost(v.unitCost ?? 0);
     }
   }
@@ -74,19 +98,19 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
     [variants, selectedVariantId]
   );
 
-  const [sellingPrice, setSellingPrice] = useState<number>(
-    selectedGoods?.sales.sellingPrice ?? 0
-  );
-  const [unitCost, setUnitCost] = useState<number>(0);
-  const [quantity, setQuantity] = useState<number>(1);
-
-  const revenue     = sellingPrice * quantity;
-  const grossProfit = (sellingPrice - unitCost) * quantity;
+  const revenue        = sellingPrice * quantity;
+  const grossProfit    = (sellingPrice - unitCost) * quantity;
+  const discountPerUnit = saleType !== "normal" ? Math.max(0, listPrice - sellingPrice) : 0;
 
   return (
     <form action={formAction} className="space-y-6">
+      {savedBundle && (
+        <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          ✓ セット販売として登録しました。同じセットIDで続けて別の商品を登録できます。
+        </div>
+      )}
       {state?.error && (
-        <div className="rounded bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-200">
+        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {state.error}
         </div>
       )}
@@ -177,6 +201,104 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
         </div>
       )}
 
+      {/* 販売種別 */}
+      <section className="rounded border border-gray-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold text-gray-700">販売種別</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs text-gray-500" htmlFor="saleType">種別</label>
+            <select
+              id="saleType"
+              name="saleType"
+              value={saleType}
+              onChange={(e) => setSaleType(e.target.value)}
+              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              {Object.entries(SALE_TYPE_LABELS).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </div>
+          {saleType !== "normal" && (
+            <div>
+              <label className="block text-xs text-gray-500" htmlFor="listPrice">定価（円）</label>
+              <input
+                id="listPrice"
+                name="listPrice"
+                type="number"
+                min="0"
+                step="1"
+                value={listPrice}
+                onChange={(e) => setListPrice(Math.max(0, Number(e.target.value)))}
+                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+              {discountPerUnit > 0 && (
+                <p className="mt-1 text-xs text-orange-500">
+                  値引き: ¥{discountPerUnit.toLocaleString()}/個
+                </p>
+              )}
+            </div>
+          )}
+          {saleType === "campaign" && (
+            <div>
+              <label className="block text-xs text-gray-500" htmlFor="campaignName">企画名</label>
+              <input
+                id="campaignName"
+                name="campaignName"
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                placeholder="例: 春の大感謝セール"
+                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+          )}
+          {saleType === "bundle" && (
+            <div>
+              <label className="block text-xs text-gray-500">セットID</label>
+              {!bundleIdValue ? (
+                <p className="mt-1 text-xs text-gray-400">
+                  初回登録後に自動生成。次回から自動で引き継ぎます。
+                </p>
+              ) : bundleIdLocked ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="flex-1 truncate rounded border border-gray-200 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-500">
+                    {bundleIdValue}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setBundleIdLocked(false)}
+                    className="shrink-0 text-xs text-blue-500 hover:underline"
+                  >
+                    変更する
+                  </button>
+                  <input type="hidden" name="bundleId" value={bundleIdValue} />
+                </div>
+              ) : (
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    name="bundleId"
+                    type="text"
+                    value={bundleIdValue}
+                    onChange={(e) => setBundleIdValue(e.target.value)}
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  />
+                  {initialBundleId && (
+                    <button
+                      type="button"
+                      onClick={() => { setBundleIdValue(initialBundleId); setBundleIdLocked(true); }}
+                      className="shrink-0 text-xs text-gray-500 hover:underline"
+                    >
+                      元に戻す
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* 販売情報 */}
       <section className="rounded border border-gray-200 bg-white p-4">
         <h2 className="mb-3 text-sm font-semibold text-gray-700">販売情報</h2>
@@ -247,6 +369,14 @@ export default function EventSalesForm({ event, goodsList, action }: Props) {
               {sellingPrice > 0 ? `${Math.round((grossProfit / revenue) * 100)}%` : "—"}
             </dd>
           </div>
+          {discountPerUnit > 0 && (
+            <div>
+              <dt className="text-xs text-gray-500">値引き合計</dt>
+              <dd className="font-semibold text-orange-500">
+                ¥{(discountPerUnit * quantity).toLocaleString()}
+              </dd>
+            </div>
+          )}
         </dl>
         <p className="mt-2 text-xs text-gray-400">
           保存後、大会詳細の物販売上（自動集計）に反映されます。

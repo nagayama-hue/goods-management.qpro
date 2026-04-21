@@ -30,18 +30,28 @@ export async function GET(request: NextRequest) {
     records = records.filter((r) => r.goodsName.includes(goodsFilter));
   }
 
+  const SALE_TYPE_JA: Record<string, string> = {
+    normal: "通常", campaign: "企画", bundle: "セット", discount: "値引き",
+  };
+
   const headers = [
     "販売日",
+    "チャネル",
     "商品名",
     "バリエーション",
     "カラー",
     "サイズ",
     "数量",
     "販売単価",
+    "定価",
+    "値引き額",
     "原価",
     "売上",
     "粗利",
     "粗利率(%)",
+    "販売種別",
+    "企画名",
+    "セットID",
     "大会名",
     "販売場所",
     "メモ",
@@ -51,18 +61,27 @@ export async function GET(request: NextRequest) {
   const rows = records.map((r) => {
     const margin =
       r.revenue > 0 ? Math.round((r.grossProfit / r.revenue) * 100) : 0;
+    const channelJa =
+      r.channel === "ec" ? "EC" :
+      r.channel === "other" ? "単独" : "大会";
     return [
       r.saleDate,
+      channelJa,
       r.goodsName,
       r.variantLabel ?? "",
       r.color ?? "",
       r.size ?? "",
       r.quantity,
       r.sellingPrice,
+      r.listPrice ?? r.sellingPrice,
+      r.discountAmount ?? 0,
       r.unitCost,
       r.revenue,
       r.grossProfit,
       margin,
+      SALE_TYPE_JA[r.saleType ?? "normal"] ?? "通常",
+      r.campaignName ?? "",
+      r.bundleId ?? "",
       r.eventName ?? "",
       r.location,
       r.memo ?? "",

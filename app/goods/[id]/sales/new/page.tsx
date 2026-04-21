@@ -6,10 +6,12 @@ import SalesNewForm from "./SalesNewForm";
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ bundleId?: string; saved?: string }>;
 }
 
-export default async function SalesNewPage({ params }: Props) {
+export default async function SalesNewPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { bundleId, saved } = await searchParams;
   const goods = getGoodsById(id);
   if (!goods) notFound();
 
@@ -26,7 +28,13 @@ export default async function SalesNewPage({ params }: Props) {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-gray-900">売上を登録</h1>
-      <SalesNewForm goods={goods} events={events} action={boundAction} />
+      <SalesNewForm
+        goods={goods}
+        events={events}
+        action={boundAction}
+        initialBundleId={bundleId}
+        savedBundle={saved === "bundle"}
+      />
     </div>
   );
 }

@@ -78,6 +78,7 @@ export default function EcPage() {
         <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">予算管理表</span>
         <Link href="/ec/campaigns" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">企画管理</Link>
         <Link href="/ec/results"   className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">実績管理</Link>
+        <Link href="/ec/sales"     className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">売上明細</Link>
       </div>
 
       <p className="text-xs text-gray-500">

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getEventById } from "@/lib/eventStore";
 import { getGoodsById, saveGoods } from "@/lib/store";
 import { addSalesRecord } from "@/lib/salesRecordStore";
+import { parseSaleTypeFields } from "@/lib/saleTypeUtils";
 import type { SalesRecord } from "@/types/salesRecord";
 
 export async function recordEventSaleAction(
@@ -24,6 +25,8 @@ export async function recordEventSaleAction(
 
   if (!goodsId) return { error: "商品を選択してください。" };
   if (sellingPrice <= 0) return { error: "販売単価を入力してください。" };
+
+  const saleTypeFields = parseSaleTypeFields(formData, sellingPrice);
 
   const goods = getGoodsById(goodsId);
   if (!goods) return { error: "商品が見つかりません。" };
@@ -73,8 +76,14 @@ export async function recordEventSaleAction(
     grossProfit,
     saleDate:    event.date,
     location:    event.name,
+    channel:       "event",
     eventId,
-    eventName:   event.name,
+    eventName:     event.name,
+    saleType:      saleTypeFields.saleType,
+    listPrice:     saleTypeFields.listPrice,
+    discountAmount: saleTypeFields.discountAmount || undefined,
+    campaignName:  saleTypeFields.campaignName,
+    bundleId:      saleTypeFields.bundleId,
     memo,
     createdAt:   new Date().toISOString(),
   };
@@ -96,5 +105,9 @@ export async function recordEventSaleAction(
   revalidatePath(`/events/${eventId}`);
   revalidatePath(`/events`);
   revalidatePath(`/goods/${goodsId}`);
+
+  if (saleTypeFields.saleType === "bundle" && saleTypeFields.bundleId) {
+    redirect(`/events/${eventId}/sales/new?bundleId=${encodeURIComponent(saleTypeFields.bundleId)}&saved=bundle`);
+  }
   redirect(`/events/${eventId}?saved=sale`);
 }

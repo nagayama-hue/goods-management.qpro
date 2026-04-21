@@ -3,7 +3,6 @@
 import { useActionState, useState, useMemo } from "react";
 import Link from "next/link";
 import type { Goods } from "@/types/goods";
-import type { EventTarget } from "@/types/event";
 
 const SALE_TYPE_LABELS: Record<string, string> = {
   normal:   "通常販売",
@@ -13,8 +12,7 @@ const SALE_TYPE_LABELS: Record<string, string> = {
 };
 
 interface Props {
-  goods: Goods;
-  events: EventTarget[];
+  goodsList: Goods[];
   initialBundleId?: string;
   savedBundle?: boolean;
   action: (
@@ -23,55 +21,33 @@ interface Props {
   ) => Promise<{ error: string } | null>;
 }
 
-export default function SalesNewForm({ goods, events, initialBundleId, savedBundle, action }: Props) {
+export default function EcSalesForm({ goodsList, initialBundleId, savedBundle, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, null);
   const today = new Date().toISOString().slice(0, 10);
 
-  const [selectedEventId, setSelectedEventId] = useState<string>("");
-  const [locationValue, setLocationValue] = useState<string>("");
+  const [selectedGoodsId, setSelectedGoodsId] = useState<string>(goodsList[0]?.id ?? "");
+  const selectedGoods = useMemo(
+    () => goodsList.find((g) => g.id === selectedGoodsId),
+    [goodsList, selectedGoodsId]
+  );
 
-  function handleEventChange(eventId: string) {
-    setSelectedEventId(eventId);
-    if (eventId) {
-      const ev = events.find((e) => e.id === eventId);
-      if (ev) setLocationValue(ev.name);
-    } else {
-      setLocationValue("");
-    }
-  }
-
-  const variants = goods.variants ?? [];
-  const hasVariants = variants.length > 0;
-
+  const variants     = selectedGoods?.variants ?? [];
+  const hasVariants  = variants.length > 0;
   const colorOptions = useMemo(
     () => [...new Set(variants.map((v) => v.color).filter(Boolean))],
     [variants]
   );
 
-  const [selectedColor, setSelectedColor] = useState<string>(colorOptions[0] ?? "");
-  const [selectedVariantId, setSelectedVariantId] = useState<string>(() => {
-    if (!hasVariants) return "";
-    const first = variants.find((v) => v.color === (colorOptions[0] ?? ""));
-    return first?.id ?? variants[0]?.id ?? "";
-  });
-
-  const sizeOptions = useMemo(
-    () => variants.filter((v) => v.color === selectedColor),
-    [variants, selectedColor]
+  const [selectedColor,     setSelectedColor]     = useState<string>(colorOptions[0] ?? "");
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(() => variants[0]?.id ?? "");
+  const [sellingPrice,      setSellingPrice]       = useState<number>(
+    variants[0]?.sellingPrice ?? goodsList[0]?.sales.sellingPrice ?? 0
   );
-
-  const selectedVariant = useMemo(
-    () => variants.find((v) => v.id === selectedVariantId),
-    [variants, selectedVariantId]
+  const [listPrice,  setListPrice]  = useState<number>(
+    variants[0]?.sellingPrice ?? goodsList[0]?.sales.sellingPrice ?? 0
   );
-
-  const defaultPrice = selectedVariant?.sellingPrice ?? goods.sales.sellingPrice;
-  const defaultCost  = selectedVariant?.unitCost ?? 0;
-
-  const [sellingPrice, setSellingPrice] = useState<number>(defaultPrice);
-  const [listPrice,    setListPrice]    = useState<number>(defaultPrice);
-  const [unitCost,     setUnitCost]     = useState<number>(defaultCost);
-  const [quantity,     setQuantity]     = useState<number>(1);
+  const [unitCost,   setUnitCost]   = useState<number>(variants[0]?.unitCost ?? 0);
+  const [quantity,   setQuantity]   = useState<number>(1);
 
   // 販売種別
   const [saleType,       setSaleType]      = useState<string>(initialBundleId ? "bundle" : "normal");
@@ -79,14 +55,36 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
   const [bundleIdValue,  setBundleIdValue] = useState<string>(initialBundleId ?? "");
   const [bundleIdLocked, setBundleIdLocked] = useState<boolean>(!!initialBundleId);
 
+  const sizeOptions = useMemo(
+    () => variants.filter((v) => v.color === selectedColor),
+    [variants, selectedColor]
+  );
+  const selectedVariant = useMemo(
+    () => variants.find((v) => v.id === selectedVariantId),
+    [variants, selectedVariantId]
+  );
+
+  function handleGoodsChange(goodsId: string) {
+    setSelectedGoodsId(goodsId);
+    const g    = goodsList.find((g) => g.id === goodsId);
+    const vars = g?.variants ?? [];
+    const firstColor = vars[0]?.color ?? "";
+    setSelectedColor(firstColor);
+    setSelectedVariantId(vars[0]?.id ?? "");
+    const price = vars[0]?.sellingPrice ?? g?.sales.sellingPrice ?? 0;
+    setSellingPrice(price);
+    setListPrice(price);
+    setUnitCost(vars[0]?.unitCost ?? 0);
+  }
+
   function handleColorChange(color: string) {
     setSelectedColor(color);
     const first = variants.find((v) => v.color === color);
     if (first) {
-      const price = first.sellingPrice ?? goods.sales.sellingPrice;
+      setSelectedVariantId(first.id);
+      const price = first.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0;
       setSellingPrice(price);
       setListPrice(price);
-      setSelectedVariantId(first.id);
       setUnitCost(first.unitCost ?? 0);
     }
   }
@@ -95,7 +93,7 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
     setSelectedVariantId(variantId);
     const v = variants.find((vv) => vv.id === variantId);
     if (v) {
-      const price = v.sellingPrice ?? goods.sales.sellingPrice;
+      const price = v.sellingPrice ?? selectedGoods?.sales.sellingPrice ?? 0;
       setSellingPrice(price);
       setListPrice(price);
       setUnitCost(v.unitCost ?? 0);
@@ -119,16 +117,25 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
         </div>
       )}
 
-      {/* 商品情報（表示のみ） */}
+      {/* 商品選択 */}
       <section className="rounded border border-gray-200 bg-white p-4">
         <h2 className="mb-3 text-sm font-semibold text-gray-700">商品</h2>
-        <p className="text-sm text-gray-800">{goods.name}</p>
+        <select
+          name="goodsId"
+          value={selectedGoodsId}
+          onChange={(e) => handleGoodsChange(e.target.value)}
+          className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        >
+          {goodsList.map((g) => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))}
+        </select>
       </section>
 
-      {/* バリエーション選択 */}
+      {/* バリエーション */}
       {hasVariants && (
         <section className="rounded border border-gray-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">バリエーション</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">カラー・サイズ</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {colorOptions.length > 1 && (
               <div>
@@ -161,33 +168,10 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
           </div>
           <input type="hidden" name="variantId" value={selectedVariantId} />
           {selectedVariant && (
-            <p className="mt-2 text-xs text-gray-400">
-              現在の在庫: {selectedVariant.stockQuantity}個
-            </p>
+            <p className="mt-2 text-xs text-gray-400">現在の在庫: {selectedVariant.stockQuantity}個</p>
           )}
         </section>
       )}
-
-      {/* 大会紐付け */}
-      <section className="rounded border border-gray-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
-          大会・イベント紐付け
-          <span className="ml-2 text-xs font-normal text-gray-400">任意 — 選択すると大会詳細の物販売上に反映されます</span>
-        </h2>
-        <select
-          name="eventId"
-          value={selectedEventId}
-          onChange={(e) => handleEventChange(e.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        >
-          <option value="">大会に紐付けない（単独販売）</option>
-          {events.map((ev) => (
-            <option key={ev.id} value={ev.id}>
-              {ev.date}　{ev.name}
-            </option>
-          ))}
-        </select>
-      </section>
 
       {/* 販売種別 */}
       <section className="rounded border border-gray-200 bg-white p-4">
@@ -287,9 +271,9 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
         </div>
       </section>
 
-      {/* 売上情報 */}
+      {/* 販売情報 */}
       <section className="rounded border border-gray-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">売上情報</h2>
+        <h2 className="mb-3 text-sm font-semibold text-gray-700">販売情報</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div>
             <label className="block text-xs text-gray-500" htmlFor="saleDate">
@@ -303,15 +287,12 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
           </div>
           <div>
             <label className="block text-xs text-gray-500" htmlFor="location">
-              販売場所 <span className="text-red-500">*</span>
+              販売場所
             </label>
             <input
-              id="location" name="location" type="text" required
-              placeholder="例: 北九州大会"
-              value={locationValue}
-              onChange={(e) => { if (!selectedEventId) setLocationValue(e.target.value); }}
-              readOnly={!!selectedEventId}
-              className={`mt-1 w-full rounded border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none ${selectedEventId ? "border-gray-200 bg-gray-50 text-gray-500" : "border-gray-300"}`}
+              id="location" name="location" type="text"
+              defaultValue="公式EC"
+              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -348,12 +329,10 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
             />
           </div>
           <div className="sm:col-span-3">
-            <label className="block text-xs text-gray-500" htmlFor="memo">
-              メモ
-            </label>
+            <label className="block text-xs text-gray-500" htmlFor="memo">メモ</label>
             <input
               id="memo" name="memo" type="text"
-              placeholder="例: 通常価格で販売"
+              placeholder="例: 春セール価格"
               className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -392,12 +371,12 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
       </section>
 
       <div className="flex items-center justify-between">
-        <Link href={`/goods/${goods.id}`} className="text-sm text-gray-500 hover:text-gray-700">
-          ← 商品詳細に戻る
+        <Link href="/ec/sales" className="text-sm text-gray-500 hover:text-gray-700">
+          ← EC売上一覧に戻る
         </Link>
         <div className="flex gap-3">
           <Link
-            href={`/goods/${goods.id}`}
+            href="/ec/sales"
             className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
           >
             キャンセル
@@ -405,9 +384,9 @@ export default function SalesNewForm({ goods, events, initialBundleId, savedBund
           <button
             type="submit"
             disabled={isPending}
-            className="rounded bg-green-600 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            className="rounded bg-purple-600 px-6 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
           >
-            {isPending ? "登録中..." : "売上を登録"}
+            {isPending ? "登録中..." : "EC売上を登録"}
           </button>
         </div>
       </div>
