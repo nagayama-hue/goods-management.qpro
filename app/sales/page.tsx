@@ -195,12 +195,14 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
                     </Link>
                     {r.saleType && r.saleType !== "normal" && (
                       <span className={`ml-2 rounded px-1.5 py-0.5 text-xs font-medium ${
-                        r.saleType === "campaign" ? "bg-orange-100 text-orange-700" :
-                        r.saleType === "bundle"   ? "bg-teal-100 text-teal-700" :
+                        r.saleType === "campaign"          ? "bg-orange-100 text-orange-700" :
+                        r.saleType === "bundle"            ? "bg-teal-100 text-teal-700" :
+                        r.saleType === "employee_discount" ? "bg-purple-100 text-purple-700" :
                         "bg-red-100 text-red-600"
                       }`}>
-                        {r.saleType === "campaign" ? r.campaignName || "企画" :
-                         r.saleType === "bundle"   ? "セット" : "値引き"}
+                        {r.saleType === "campaign"          ? r.campaignName || "企画" :
+                         r.saleType === "bundle"            ? "セット" :
+                         r.saleType === "employee_discount" ? "社員割" : "値引き"}
                       </span>
                     )}
                   </td>

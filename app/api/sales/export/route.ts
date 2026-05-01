@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   const SALE_TYPE_JA: Record<string, string> = {
-    normal: "通常", campaign: "企画", bundle: "セット", discount: "値引き",
+    normal: "通常", campaign: "企画", bundle: "セット", discount: "値引き", employee_discount: "社員割",
   };
 
   const headers = [

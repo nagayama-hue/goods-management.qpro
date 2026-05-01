@@ -1,6 +1,6 @@
 import type { SaleType } from "@/types/salesRecord";
 
-const VALID_SALE_TYPES: SaleType[] = ["normal", "campaign", "bundle", "discount"];
+const VALID_SALE_TYPES: SaleType[] = ["normal", "campaign", "bundle", "discount", "employee_discount"];
 
 export interface SaleTypeFields {
   saleType: SaleType;

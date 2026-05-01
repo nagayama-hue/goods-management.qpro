@@ -1,4 +1,4 @@
-export type SaleType = "normal" | "campaign" | "bundle" | "discount";
+export type SaleType = "normal" | "campaign" | "bundle" | "discount" | "employee_discount";
 
 export interface SalesRecord {
   id: string;

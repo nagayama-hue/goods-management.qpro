@@ -5,10 +5,11 @@ import Link from "next/link";
 import type { Goods } from "@/types/goods";
 
 const SALE_TYPE_LABELS: Record<string, string> = {
-  normal:   "通常販売",
-  campaign: "企画販売",
-  bundle:   "セット販売",
-  discount: "値引き販売",
+  normal:            "通常販売",
+  campaign:          "企画販売",
+  bundle:            "セット販売",
+  discount:          "値引き販売",
+  employee_discount: "社員割",
 };
 
 interface Props {

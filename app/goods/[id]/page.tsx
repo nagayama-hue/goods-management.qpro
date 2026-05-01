@@ -10,6 +10,7 @@ import { getRecommendedLink, getCandidateLinks } from "@/lib/goodsSupplierStore"
 import { getSupplierById, getAllSuppliers } from "@/lib/supplierStore";
 import { getOrderHistoryForGoods } from "@/lib/orderHistoryStore";
 import { getSalesRecordsByGoods } from "@/lib/salesRecordStore";
+import { getOutflowsByGoods } from "@/lib/stockOutflowStore";
 import {
   getAirregiStockByCode,
   getAirregiSalesByCode,
@@ -61,6 +62,9 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
   const salesRecords      = getSalesRecordsByGoods(id).sort((a, b) =>
     b.saleDate.localeCompare(a.saleDate) || b.createdAt.localeCompare(a.createdAt)
   );
+  const outflowRecords    = getOutflowsByGoods(id).sort((a, b) =>
+    b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)
+  );
   const salesRevenue      = salesRecords.reduce((s, r) => s + r.revenue, 0);
   const salesGrossProfit  = salesRecords.reduce((s, r) => s + r.grossProfit, 0);
   const salesQuantity     = salesRecords.reduce((s, r) => s + r.quantity, 0);
@@ -75,7 +79,8 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
 
   const savedMessage =
     saved === "created" ? "商品を登録しました。" :
-    saved === "updated" ? "変更を保存しました。" : null;
+    saved === "updated" ? "変更を保存しました。" :
+    saved === "outflow" ? "出庫を登録しました。" : null;
 
   return (
     <div className="space-y-6">
@@ -100,6 +105,12 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
             className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
           >
             ＋ 売上を登録
+          </Link>
+          <Link
+            href={`/goods/${g.id}/outflow/new`}
+            className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+          >
+            ＋ 出庫を登録
           </Link>
           <Link
             href={`/goods/${g.id}/edit`}
@@ -984,6 +995,58 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
               </table>
             </div>
           </>
+        )}
+      </section>
+
+      {/* 出庫履歴 */}
+      <section className="rounded border border-gray-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">出庫履歴</h2>
+          <Link
+            href={`/goods/${g.id}/outflow/new`}
+            className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+          >
+            ＋ 出庫を登録
+          </Link>
+        </div>
+
+        {outflowRecords.length === 0 ? (
+          <p className="py-6 text-center text-sm text-gray-400">
+            出庫記録がまだ登録されていません。
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
+              <thead>
+                <tr className="border-b text-xs text-gray-500">
+                  <th className="pb-2 pr-3 text-left font-medium">出庫日</th>
+                  <th className="pb-2 pr-3 text-left font-medium">区分</th>
+                  <th className="pb-2 pr-3 text-left font-medium">バリエーション</th>
+                  <th className="pb-2 pr-3 text-right font-medium">数量</th>
+                  <th className="pb-2 text-left font-medium">メモ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {outflowRecords.map((o) => (
+                  <tr key={o.id} className="hover:bg-gray-50">
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">{o.date}</td>
+                    <td className="py-2 pr-3">
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                        {o.outflowType}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 text-gray-600">
+                      {o.color === "標準" && o.size === "FREE"
+                        ? "—"
+                        : `${o.color}${o.size ? ` / ${o.size}` : ""}`}
+                    </td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-700">{o.quantity}個</td>
+                    <td className="py-2 text-gray-500">{o.memo || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
