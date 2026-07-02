@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllTargets } from "@/lib/targetStore";
 import { getAllCampaigns } from "@/lib/ecCampaignStore";
+import { getEcSalesSumsByCampaign, getUnlinkedEcSalesByMonth, effectiveActual } from "@/lib/ecActuals";
 import EcBudgetTable from "./EcBudgetTable";
 import type { MonthlyTarget } from "@/types/target";
 
@@ -49,14 +50,25 @@ export default function EcPage() {
     campaignTotals[monthNum][field] = (campaignTotals[monthNum][field] ?? 0) + c.target;
   }
 
-  // 企画管理から月×フィールド別の「実績合計」を集計（actual 入力済みのみ）
+  // 月×フィールド別の「実績合計」：紐付き売上明細の自動集計 ＞ 手入力 actual
+  const salesSums       = getEcSalesSumsByCampaign();
+  const unlinkedByMonth = getUnlinkedEcSalesByMonth();
+
   const campaignActuals: Record<number, Record<string, number>> = {};
   for (const m of MONTHS) campaignActuals[m] = {};
-  for (const c of campaigns.filter((c) => c.actual !== undefined)) {
+  for (const c of campaigns) {
+    const actual = effectiveActual(c, salesSums);
+    if (actual === undefined) continue;
     const monthNum = parseInt(c.targetMonth.split("-")[1], 10);
     const field    = CAMPAIGN_TYPE_TO_FIELD[c.type];
     if (!field) continue;
-    campaignActuals[monthNum][field] = (campaignActuals[monthNum][field] ?? 0) + (c.actual ?? 0);
+    campaignActuals[monthNum][field] = (campaignActuals[monthNum][field] ?? 0) + actual;
+  }
+  // 企画に紐付いていないEC売上明細は「通常販売」に月別で計上
+  for (const [ym, sum] of Object.entries(unlinkedByMonth)) {
+    if (!ym.startsWith(String(YEAR))) continue;
+    const monthNum = parseInt(ym.split("-")[1], 10);
+    campaignActuals[monthNum]["ecRegular"] = (campaignActuals[monthNum]["ecRegular"] ?? 0) + sum.revenue;
   }
 
   return (

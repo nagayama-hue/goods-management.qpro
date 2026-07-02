@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllTargets } from "@/lib/targetStore";
 import { getAllCampaigns } from "@/lib/ecCampaignStore";
+import { getEcSalesSumsByCampaign, getUnlinkedEcSalesByMonth, effectiveActual } from "@/lib/ecActuals";
 import { formatCurrency } from "@/lib/format";
 import {
   calcPct,
@@ -58,6 +59,10 @@ export default function EcResultsPage() {
     };
   }
 
+  // 実績の元データ：企画に紐付いた売上明細（自動集計）＞ 手入力 actual
+  const salesSums       = getEcSalesSumsByCampaign();
+  const unlinkedByMonth = getUnlinkedEcSalesByMonth();
+
   // キャンペーン実績を month × field で集計
   const actuals: Record<number, Record<EcField, number>> = {};
   // 企画が存在するか（"未入力" 表示用）
@@ -70,7 +75,14 @@ export default function EcResultsPage() {
     const monthNum = parseInt(c.targetMonth.split("-")[1], 10);
     const field    = CAMPAIGN_TYPE_TO_FIELD[c.type];
     hasCampaign[monthNum][field] = true;
-    if (c.actual !== undefined) actuals[monthNum][field] += c.actual;
+    const actual = effectiveActual(c, salesSums);
+    if (actual !== undefined) actuals[monthNum][field] += actual;
+  }
+  // 企画に紐付いていないEC売上明細は「通常販売」に月別で計上
+  for (const [ym, sum] of Object.entries(unlinkedByMonth)) {
+    if (!ym.startsWith(String(YEAR))) continue;
+    const monthNum = parseInt(ym.split("-")[1], 10);
+    actuals[monthNum].ecRegular += sum.revenue;
   }
 
   // 集計関数
@@ -373,10 +385,12 @@ export default function EcResultsPage() {
       </div>
 
       <p className="text-xs text-gray-400">
-        ※ 実績は「企画管理」に登録された企画の実績入力値を月×カテゴリで集計しています。
-        実績の入力は
-        <Link href="/ec/campaigns" className="ml-1 text-blue-500 hover:underline">企画管理</Link>
-        から行ってください。
+        ※ 実績は
+        <Link href="/ec/sales" className="mx-1 text-blue-500 hover:underline">売上明細</Link>
+        （品目・個数単位）を自動集計しています。企画に紐付けた明細はその企画のカテゴリに、
+        紐付けなしの明細は「通常販売」に計上されます。明細のない企画は
+        <Link href="/ec/campaigns" className="mx-1 text-blue-500 hover:underline">企画管理</Link>
+        の手入力実績を使用します。
         色分け：
         <span className="ml-1 text-green-600">緑 ≥ 80%</span>・
         <span className="ml-1 text-yellow-600">黄 50〜79%</span>・

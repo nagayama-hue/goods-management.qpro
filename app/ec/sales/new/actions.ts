@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getGoodsById, saveGoods } from "@/lib/store";
 import { addSalesRecord } from "@/lib/salesRecordStore";
+import { getCampaignById } from "@/lib/ecCampaignStore";
 import { parseSaleTypeFields } from "@/lib/saleTypeUtils";
 import type { SalesRecord } from "@/types/salesRecord";
 
@@ -24,6 +25,11 @@ export async function recordEcSaleAction(
   if (sellingPrice <= 0) return { error: "販売単価を入力してください。" };
 
   const saleTypeFields = parseSaleTypeFields(formData, sellingPrice);
+
+  // EC企画紐付け（任意）
+  const ecCampaignId = formData.get("ecCampaignId")?.toString() || undefined;
+  const ecCampaign   = ecCampaignId ? getCampaignById(ecCampaignId) : undefined;
+  if (ecCampaignId && !ecCampaign) return { error: "指定されたEC企画が見つかりません。" };
 
   const goods = getGoodsById(goodsId);
   if (!goods) return { error: "商品が見つかりません。" };
@@ -66,6 +72,8 @@ export async function recordEcSaleAction(
     saleDate,
     location,
     channel:       "ec",
+    ecCampaignId,
+    ecCampaignName: ecCampaign?.name,
     saleType:      saleTypeFields.saleType,
     listPrice:     saleTypeFields.listPrice,
     discountAmount: saleTypeFields.discountAmount || undefined,
@@ -88,6 +96,9 @@ export async function recordEcSaleAction(
   addSalesRecord(record);
 
   revalidatePath("/ec/sales");
+  revalidatePath("/ec");
+  revalidatePath("/ec/results");
+  revalidatePath("/ec/campaigns");
   revalidatePath("/sales");
   revalidatePath(`/goods/${goodsId}`);
   revalidatePath("/");

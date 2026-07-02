@@ -24,7 +24,7 @@
       "salesCount": 0
     },
     "createdAt": "2026-01-15T00:00:00.000Z",
-    "updatedAt": "2026-04-21T02:47:19.125Z",
+    "updatedAt": "2026-07-02T03:00:23.692Z",
     "variants": [
       {
         "id": "v-1775654694151-5hjy",
@@ -63,7 +63,17 @@
       "salesCount": 0
     },
     "createdAt": "2026-02-01T00:00:00.000Z",
-    "updatedAt": "2026-02-20T00:00:00.000Z"
+    "updatedAt": "2026-02-20T00:00:00.000Z",
+    "variants": [
+      {
+        "id": "v-std-sample-002",
+        "color": "標準",
+        "size": "FREE",
+        "plannedQuantity": 150,
+        "stockQuantity": 150,
+        "soldQuantity": 0
+      }
+    ]
   },
   {
     "id": "sample-003",
@@ -90,7 +100,17 @@
       "salesCount": 0
     },
     "createdAt": "2026-03-01T00:00:00.000Z",
-    "updatedAt": "2026-03-01T00:00:00.000Z"
+    "updatedAt": "2026-03-01T00:00:00.000Z",
+    "variants": [
+      {
+        "id": "v-std-sample-003",
+        "color": "標準",
+        "size": "FREE",
+        "plannedQuantity": 0,
+        "stockQuantity": 0,
+        "soldQuantity": 0
+      }
+    ]
   },
   {
     "id": "goods-1774299556260",
@@ -117,7 +137,17 @@
       "salesCount": 0
     },
     "createdAt": "2026-03-23T20:59:16.260Z",
-    "updatedAt": "2026-03-23T20:59:16.260Z"
+    "updatedAt": "2026-03-23T20:59:16.260Z",
+    "variants": [
+      {
+        "id": "v-std-goods-1774299556260",
+        "color": "標準",
+        "size": "FREE",
+        "plannedQuantity": 30,
+        "stockQuantity": 30,
+        "soldQuantity": 0
+      }
+    ]
   },
   {
     "id": "goods-1774346219170-rj9w3",
@@ -143,6 +173,16 @@
       "salesCount": 0
     },
     "createdAt": "2026-03-24T09:56:59.170Z",
-    "updatedAt": "2026-03-24T09:57:19.980Z"
+    "updatedAt": "2026-03-24T09:57:19.980Z",
+    "variants": [
+      {
+        "id": "v-std-goods-1774346219170-rj9w3",
+        "color": "標準",
+        "size": "FREE",
+        "plannedQuantity": 0,
+        "stockQuantity": 0,
+        "soldQuantity": 0
+      }
+    ]
   }
 ]

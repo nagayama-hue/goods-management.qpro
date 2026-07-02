@@ -1,4 +1,5 @@
 import { getAllGoods } from "@/lib/store";
+import { getAllCampaigns } from "@/lib/ecCampaignStore";
 import { recordEcSaleAction } from "./actions";
 import EcSalesForm from "./EcSalesForm";
 
@@ -15,11 +16,20 @@ export default async function EcSalesNewPage({ searchParams }: Props) {
     (g) => !["案出し中", "検討中", "終了"].includes(g.status)
   );
 
+  // 過去3ヶ月〜未来の企画を新しい順で表示（大会紐付けと同じ範囲）
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 3);
+  const cutoffYm = cutoff.toISOString().slice(0, 7);
+  const campaigns = getAllCampaigns()
+    .filter((c) => c.targetMonth >= cutoffYm)
+    .sort((a, b) => b.targetMonth.localeCompare(a.targetMonth));
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-gray-900">EC売上を登録</h1>
       <EcSalesForm
         goodsList={goodsList}
+        campaigns={campaigns}
         action={recordEcSaleAction}
         initialBundleId={bundleId}
         savedBundle={saved === "bundle"}

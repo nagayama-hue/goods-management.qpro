@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllCampaigns } from "@/lib/ecCampaignStore";
+import { getEcSalesSumsByCampaign, effectiveActual } from "@/lib/ecActuals";
 import { updateActualAction } from "./actions";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -33,8 +34,16 @@ export default async function EcCampaignsPage({ searchParams }: Props) {
   const { type: typeFilter, sort } = await searchParams;
   const isRanking = sort === "actual";
 
+  // 紐付いた売上明細があれば actual を自動集計値で上書き（表示・集計・ソート共通化）
+  const salesSums = getEcSalesSumsByCampaign();
   const filtered = getAllCampaigns()
-    .filter((c) => !typeFilter || c.type === (typeFilter as EcCampaignType));
+    .filter((c) => !typeFilter || c.type === (typeFilter as EcCampaignType))
+    .map((c) => ({
+      ...c,
+      actual:       effectiveActual(c, salesSums),
+      autoLinked:   (salesSums[c.id]?.count ?? 0) > 0,
+      autoQuantity: salesSums[c.id]?.quantity ?? 0,
+    }));
 
   // 表示用ソート：売上順（実績降順）or 日付順
   const all = isRanking
@@ -112,6 +121,7 @@ export default async function EcCampaignsPage({ searchParams }: Props) {
         <Link href="/ec"           className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">予算管理表</Link>
         <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">企画管理</span>
         <Link href="/ec/results"   className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">実績管理</Link>
+        <Link href="/ec/sales"     className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">売上明細</Link>
       </div>
 
       {/* フィルター＋ソート */}
@@ -257,24 +267,30 @@ export default async function EcCampaignsPage({ searchParams }: Props) {
                         )}
                       </td>
                       <td className="px-4 py-2.5">
-                        <form action={updateActualAction} className="flex items-center gap-1.5">
-                          <input type="hidden" name="id" value={c.id} />
-                          <input
-                            type="number"
-                            name="actual"
-                            defaultValue={c.actual ?? ""}
-                            min={0}
-                            step={1000}
-                            placeholder="実績を入力"
-                            className="w-32 rounded border border-gray-200 px-2 py-1 text-right tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-400"
-                          />
-                          <button
-                            type="submit"
-                            className="shrink-0 rounded border border-gray-200 px-2 py-1 text-gray-500 hover:border-gray-400 hover:text-gray-700"
-                          >
-                            保存
-                          </button>
-                        </form>
+                        {c.autoLinked ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-xs text-blue-600">
+                            明細から自動集計（{c.autoQuantity}個）
+                          </span>
+                        ) : (
+                          <form action={updateActualAction} className="flex items-center gap-1.5">
+                            <input type="hidden" name="id" value={c.id} />
+                            <input
+                              type="number"
+                              name="actual"
+                              defaultValue={c.actual ?? ""}
+                              min={0}
+                              step={1000}
+                              placeholder="実績を入力"
+                              className="w-32 rounded border border-gray-200 px-2 py-1 text-right tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                            <button
+                              type="submit"
+                              className="shrink-0 rounded border border-gray-200 px-2 py-1 text-gray-500 hover:border-gray-400 hover:text-gray-700"
+                            >
+                              保存
+                            </button>
+                          </form>
+                        )}
                       </td>
                       <td className="px-4 py-2.5">
                         <Link
@@ -389,24 +405,30 @@ export default async function EcCampaignsPage({ searchParams }: Props) {
                               )}
                             </td>
                             <td className="px-4 py-2.5">
-                              <form action={updateActualAction} className="flex items-center gap-1.5">
-                                <input type="hidden" name="id" value={c.id} />
-                                <input
-                                  type="number"
-                                  name="actual"
-                                  defaultValue={c.actual ?? ""}
-                                  min={0}
-                                  step={1000}
-                                  placeholder="実績を入力"
-                                  className="w-32 rounded border border-gray-200 px-2 py-1 text-right tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-400"
-                                />
-                                <button
-                                  type="submit"
-                                  className="shrink-0 rounded border border-gray-200 px-2 py-1 text-gray-500 hover:border-gray-400 hover:text-gray-700"
-                                >
-                                  保存
-                                </button>
-                              </form>
+                              {c.autoLinked ? (
+                                <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-xs text-blue-600">
+                                  明細から自動集計（{c.autoQuantity}個 / {formatCurrency(c.actual ?? 0)}）
+                                </span>
+                              ) : (
+                                <form action={updateActualAction} className="flex items-center gap-1.5">
+                                  <input type="hidden" name="id" value={c.id} />
+                                  <input
+                                    type="number"
+                                    name="actual"
+                                    defaultValue={c.actual ?? ""}
+                                    min={0}
+                                    step={1000}
+                                    placeholder="実績を入力"
+                                    className="w-32 rounded border border-gray-200 px-2 py-1 text-right tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="shrink-0 rounded border border-gray-200 px-2 py-1 text-gray-500 hover:border-gray-400 hover:text-gray-700"
+                                  >
+                                    保存
+                                  </button>
+                                </form>
+                              )}
                             </td>
                             <td className="px-4 py-2.5">
                               <span className={`text-xs ${status.cls}`}>{status.label}</span>

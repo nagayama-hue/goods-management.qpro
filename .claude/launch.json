@@ -1,12 +1,11 @@
 {
   "version": "0.0.1",
-  "autoPort": true,
   "configurations": [
     {
       "name": "dev",
       "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["node_modules/.bin/next", "dev", "--webpack"],
-      "port": 3000
+      "port": 3001
     }
   ]
 }

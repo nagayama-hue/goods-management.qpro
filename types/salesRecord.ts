@@ -18,6 +18,8 @@ export interface SalesRecord {
   channel?: "event" | "ec" | "other"; // 販売チャネル（未設定は event 扱い）
   eventId?: string;         // 大会ID（channel=event の場合）
   eventName?: string;       // 大会名スナップショット
+  ecCampaignId?: string;    // EC企画ID（channel=ec の場合、企画に紐付けると実績管理に自動集計）
+  ecCampaignName?: string;  // EC企画名スナップショット
   saleType?: SaleType;      // 販売種別（未設定は normal 扱い）
   listPrice?: number;       // 定価（分析用：マスタの販売単価）
   discountAmount?: number;  // 値引き額/unit = listPrice - sellingPrice（分析用）

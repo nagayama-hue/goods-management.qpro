@@ -93,7 +93,7 @@ export default async function EcSalesPage({ searchParams }: Props) {
             <thead>
               <tr className="border-b bg-gray-50 text-xs text-gray-500">
                 <th className="px-4 py-3 text-left font-medium">販売日</th>
-                <th className="px-4 py-3 text-left font-medium">販売場所</th>
+                <th className="px-4 py-3 text-left font-medium">企画</th>
                 <th className="px-4 py-3 text-left font-medium">商品名</th>
                 <th className="px-4 py-3 text-left font-medium">カラー</th>
                 <th className="px-4 py-3 text-left font-medium">サイズ</th>
@@ -108,7 +108,13 @@ export default async function EcSalesPage({ searchParams }: Props) {
               {records.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-4 py-3 tabular-nums text-gray-600">{r.saleDate}</td>
-                  <td className="px-4 py-3 text-gray-700">{r.location}</td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {r.ecCampaignName ? (
+                      <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-600">{r.ecCampaignName}</span>
+                    ) : (
+                      <span className="text-xs text-gray-400">通常販売</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-gray-800">
                     <Link href={`/goods/${r.goodsId}`} className="hover:text-blue-600 hover:underline">
                       {r.goodsName}
