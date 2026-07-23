@@ -58,6 +58,21 @@ export default function EcSalesForm({ goodsList, campaigns, initialBundleId, sav
   const [bundleIdValue,  setBundleIdValue] = useState<string>(initialBundleId ?? "");
   const [bundleIdLocked, setBundleIdLocked] = useState<boolean>(!!initialBundleId);
 
+  // EC企画紐付け。企画を選んだら販売種別・企画名も自動で揃える（手入力済みの企画名は上書きしない）
+  const [ecCampaignId, setEcCampaignId] = useState<string>("");
+
+  function handleEcCampaignChange(id: string) {
+    const prevCampaign = campaigns.find((c) => c.id === ecCampaignId);
+    setEcCampaignId(id);
+    const next = campaigns.find((c) => c.id === id);
+    if (next) {
+      if (saleType === "normal") setSaleType("campaign");
+      if (!campaignName.trim() || campaignName === prevCampaign?.name) {
+        setCampaignName(next.name);
+      }
+    }
+  }
+
   const sizeOptions = useMemo(
     () => variants.filter((v) => v.color === selectedColor),
     [variants, selectedColor]
@@ -184,7 +199,8 @@ export default function EcSalesForm({ goodsList, campaigns, initialBundleId, sav
         </h2>
         <select
           name="ecCampaignId"
-          defaultValue=""
+          value={ecCampaignId}
+          onChange={(e) => handleEcCampaignChange(e.target.value)}
           className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         >
           <option value="">企画に紐付けない（通常販売として集計）</option>
@@ -194,6 +210,13 @@ export default function EcSalesForm({ goodsList, campaigns, initialBundleId, sav
             </option>
           ))}
         </select>
+        {campaigns.length === 0 && (
+          <p className="mt-2 text-xs text-orange-500">
+            選択できる企画がありません。先に
+            <Link href="/ec/campaigns/new" className="mx-1 text-blue-500 hover:underline">EC企画管理で企画を作成</Link>
+            すると、ここに表示されます。
+          </p>
+        )}
       </section>
 
       {/* 販売種別 */}
@@ -246,6 +269,9 @@ export default function EcSalesForm({ goodsList, campaigns, initialBundleId, sav
                 placeholder="例: 春の大感謝セール"
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
+              <p className="mt-1 text-xs text-gray-400">
+                企画管理への実績集計は上の「EC企画紐付け」の選択で決まります（この名称は分類用）。
+              </p>
             </div>
           )}
           {saleType === "bundle" && (

@@ -43,3 +43,4 @@ data/airregi-config.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+fc-management-tool/

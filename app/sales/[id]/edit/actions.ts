@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSalesRecordById, updateSalesRecord } from "@/lib/salesRecordStore";
 import { getGoodsById, saveGoods } from "@/lib/store";
+import { getCampaignById } from "@/lib/ecCampaignStore";
 import { restoreVariantStock, applyVariantSale } from "@/lib/variantUtils";
 import type { SalesRecord } from "@/types/salesRecord";
 import type { GoodsVariant } from "@/types/goods";
@@ -28,6 +29,23 @@ export async function updateSaleAction(
 
   if (!newLocation)  return { error: "販売場所は必須です。" };
   if (newPrice <= 0) return { error: "販売単価を入力してください。" };
+
+  // EC企画紐付け（フォームに欄が出る channel=ec のときだけ送信される。null=欄なし→変更しない）
+  const ecCampaignIdRaw = formData.get("ecCampaignId");
+  let newEcCampaignId   = oldRecord.ecCampaignId;
+  let newEcCampaignName = oldRecord.ecCampaignName;
+  if (ecCampaignIdRaw !== null) {
+    const idStr = ecCampaignIdRaw.toString();
+    if (idStr) {
+      const campaign = getCampaignById(idStr);
+      if (!campaign) return { error: "指定されたEC企画が見つかりません。" };
+      newEcCampaignId   = idStr;
+      newEcCampaignName = campaign.name;
+    } else {
+      newEcCampaignId   = undefined;
+      newEcCampaignName = undefined;
+    }
+  }
 
   const isSameGoods   = newGoodsId === oldRecord.goodsId;
   const isSameVariant = newVariantId === oldRecord.variantId;
@@ -131,6 +149,8 @@ export async function updateSaleAction(
     saleDate:     newDate,
     location:     newLocation,
     memo:         newMemo,
+    ecCampaignId:   newEcCampaignId,
+    ecCampaignName: newEcCampaignName,
   };
 
   updateSalesRecord(updatedRecord);
@@ -139,6 +159,12 @@ export async function updateSaleAction(
   revalidatePath(`/goods/${oldRecord.goodsId}`);
   if (newGoodsId !== oldRecord.goodsId) revalidatePath(`/goods/${newGoodsId}`);
   if (oldRecord.eventId) revalidatePath(`/events/${oldRecord.eventId}`);
+  if (oldRecord.channel === "ec") {
+    revalidatePath("/ec");
+    revalidatePath("/ec/sales");
+    revalidatePath("/ec/results");
+    revalidatePath("/ec/campaigns");
+  }
 
   redirect(returnTo.startsWith("/") ? returnTo : "/sales");
 }

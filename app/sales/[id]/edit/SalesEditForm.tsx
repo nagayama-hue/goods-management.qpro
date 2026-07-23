@@ -4,10 +4,12 @@ import { useActionState, useState, useMemo } from "react";
 import Link from "next/link";
 import type { Goods } from "@/types/goods";
 import type { SalesRecord } from "@/types/salesRecord";
+import type { EcCampaign } from "@/types/ecCampaign";
 
 interface Props {
   record: SalesRecord;
   goodsList: Goods[];
+  campaigns: EcCampaign[];
   returnTo: string;
   action: (
     prevState: { error: string } | null,
@@ -15,7 +17,7 @@ interface Props {
   ) => Promise<{ error: string } | null>;
 }
 
-export default function SalesEditForm({ record, goodsList, returnTo, action }: Props) {
+export default function SalesEditForm({ record, goodsList, campaigns, returnTo, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, null);
 
   // 商品選択
@@ -166,6 +168,33 @@ export default function SalesEditForm({ record, goodsList, returnTo, action }: P
               {selectedVariantId === record.variantId && (
                 <span className="ml-1 text-gray-300">（旧数量{record.quantity}個を含む）</span>
               )}
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* EC企画紐付け（EC売上のみ） */}
+      {record.channel === "ec" && (
+        <section className="rounded border border-gray-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">
+            EC企画紐付け
+            <span className="ml-2 text-xs font-normal text-gray-400">選択すると実績管理・企画管理に自動集計されます</span>
+          </h2>
+          <select
+            name="ecCampaignId"
+            defaultValue={record.ecCampaignId ?? ""}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">企画に紐付けない（通常販売として集計）</option>
+            {campaigns.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.targetMonth}　[{c.type}] {c.name}
+              </option>
+            ))}
+          </select>
+          {campaigns.length === 0 && (
+            <p className="mt-2 text-xs text-gray-400">
+              選択できる企画がありません。EC企画管理で企画を作成すると、ここに表示されます。
             </p>
           )}
         </section>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSalesRecordById } from "@/lib/salesRecordStore";
 import { getAllGoods } from "@/lib/store";
+import { getAllCampaigns } from "@/lib/ecCampaignStore";
 import { updateSaleAction } from "./actions";
 import SalesEditForm from "./SalesEditForm";
 
@@ -21,6 +22,16 @@ export default async function EditSalePage({ params, searchParams }: Props) {
     (g) => !["案出し中", "検討中", "終了"].includes(g.status) || g.id === record.goodsId
   );
 
+  // EC売上のみ企画紐付けを編集可能（新規登録と同じ範囲＋現在紐付いている企画）
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 3);
+  const cutoffYm = cutoff.toISOString().slice(0, 7);
+  const campaigns = record.channel === "ec"
+    ? getAllCampaigns()
+        .filter((c) => c.targetMonth >= cutoffYm || c.id === record.ecCampaignId)
+        .sort((a, b) => b.targetMonth.localeCompare(a.targetMonth))
+    : [];
+
   const boundAction = updateSaleAction.bind(null, id, returnTo);
 
   return (
@@ -31,7 +42,7 @@ export default async function EditSalePage({ params, searchParams }: Props) {
           在庫・販売数は差分で自動調整されます。
         </p>
       </div>
-      <SalesEditForm record={record} goodsList={goodsList} returnTo={returnTo} action={boundAction} />
+      <SalesEditForm record={record} goodsList={goodsList} campaigns={campaigns} returnTo={returnTo} action={boundAction} />
     </div>
   );
 }
