@@ -76,5 +76,11 @@
     "name": "関根泰誠",
     "active": true,
     "createdAt": "2026-07-27T00:00:00.000Z"
+  },
+  {
+    "id": "w14",
+    "name": "マッハ隼人",
+    "active": true,
+    "createdAt": "2026-07-28T00:00:00.000Z"
   }
 ]
