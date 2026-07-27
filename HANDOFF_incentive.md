@@ -194,6 +194,19 @@ DBマイグレーションは必ず後方互換（列追加のみ、既存列の
 - `/incentive/wrestlers`：選手マスタ（追加・現役/退団フラグ。削除なし）
 - ナビに「インセンティブ」を追加。既存機能への変更はこのリンク1行のみ
 
+### Phase 2＋3（月次集計・ルール・CSV出力）実装内容（2026-07-28）
+- `types/incentiveRule.ts` / `lib/incentiveRuleStore.ts`：ルール（選手個別 or 全選手デフォルト × チャネル × 計算基準 × 適用開始日）。**Volume対応の自動シード**で初期5ルール投入（全選手 venue5%/ec5%/hand10%、マッハ隼人・関根泰誠 全チャネル粗利80%＝要確認のまま仮置き）
+- `lib/incentiveCalc.ts`：計算エンジン（プロトタイプ calcMonth/resolveRule 移植）
+  - 対象判定：社員割は対象外（§12決定）／multi・org・区分未設定は対象外として**区分別件数を表示**（黙って除外しない）
+  - channel: event・other→venue、ec→ec で解決（hand は Phase 4）
+  - `wrestlerOverrideId`（SalesRecord optional 追加）指定時は紐付け無視で100%帰属（入力UIは未実装）
+  - 粗利ベースで原価未設定（unitCost=0）の明細は「⚠原価未設定」フラグ＋画面警告
+  - 行ごと円未満切り捨て
+- `/incentive`：月次集計（対象月セレクタ・支払総額・選手別一覧・明細展開・対象外サマリ・原価警告）。**ナビ直下のデフォルト画面**
+- `/incentive/rules`：ルール一覧・追加・削除（率変更は削除でなく新開始日で追加する運用）
+- `/api/incentive/export?month=YYYY-MM&mode=summary|detail`：CSV（BOM付きUTF-8）。summary=選手別振込額一覧（経理用）、detail=明細
+- 検証：手計算との突合済み（5%切り捨て・80%粗利・按分除外・月フィルタ・400エラー）。**本番の現行Excel 2026年6月分との突合（玄海¥5,725等）は未実施** — 本番データ投入後に必ず実施すること
+
 ## 12. 追加の未決定事項（Phase 0 で発見）
 
 | # | 事項 | 状態 |

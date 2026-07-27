@@ -76,7 +76,7 @@ ANTHROPIC_API_KEY=<受け渡されたキー>
 | `/sales` | 売上実績一覧 | 全チャネル横断の SalesRecord 一覧。CSV 出力あり |
 | `/events` | 大会管理 | 大会マスタと大会ごとの物販売上（売上明細から自動集計） |
 | `/ec` 配下 | EC管理 | 予算管理表・企画管理・実績管理・売上明細の4タブ（詳細は後述） |
-| `/incentive` 配下 | インセンティブ管理 | 選手マスタ・商品×選手紐付け（**詳細は [HANDOFF_incentive.md](HANDOFF_incentive.md)**。Phase 1まで実装済み、Phase 2以降未着手） |
+| `/incentive` 配下 | インセンティブ管理 | 月次集計（選手別・CSV出力）・ルール・商品×選手紐付け・選手マスタ（**詳細は [HANDOFF_incentive.md](HANDOFF_incentive.md)**。Phase 3まで実装済み、Phase 4手売り・Phase 5認証は未着手） |
 | `/suppliers` | 取引先管理 | 仕入先マスタ・商品との紐付け・発注履歴 |
 | `/dashboard` | ダッシュボード | 全体サマリー |
 | `/analytics/...` | 分析 | 月別・カテゴリ別・チャネル別のドリルダウン |

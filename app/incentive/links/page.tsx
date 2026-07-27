@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getAllGoods } from "@/lib/store";
+import IncentiveTabs from "../IncentiveTabs";
 import { getActiveWrestlers } from "@/lib/wrestlerStore";
 import { getAllGoodsIncentives } from "@/lib/goodsIncentiveStore";
 import { saveGoodsIncentiveAction, clearGoodsIncentiveAction, autoSuggestAction } from "./actions";
@@ -51,11 +51,7 @@ export default async function IncentiveLinksPage({ searchParams }: Props) {
         </p>
       </div>
 
-      {/* タブナビ */}
-      <div className="flex gap-1 border-b border-gray-200">
-        <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">商品×選手 紐付け</span>
-        <Link href="/incentive/wrestlers" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">選手マスタ</Link>
-      </div>
+      <IncentiveTabs active="/incentive/links" />
 
       {/* ツールバー */}
       <div className="flex flex-wrap items-center gap-3 rounded border border-gray-200 bg-white px-4 py-3">

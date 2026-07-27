@@ -1,0 +1,47 @@
+[
+  {
+    "id": "rule-default-venue",
+    "wrestlerId": null,
+    "channel": "venue",
+    "basis": "sales",
+    "value": 5,
+    "startDate": "2021-11-01",
+    "note": "社内規程2021.11（会場・個人グッズ）"
+  },
+  {
+    "id": "rule-default-ec",
+    "wrestlerId": null,
+    "channel": "ec",
+    "basis": "sales",
+    "value": 5,
+    "startDate": "2021-11-01",
+    "note": "社内規程2021.11（EC・個人グッズ）"
+  },
+  {
+    "id": "rule-default-hand",
+    "wrestlerId": null,
+    "channel": "hand",
+    "basis": "sales",
+    "value": 10,
+    "startDate": "2021-11-01",
+    "note": "社内規程2021.11（手売り・全グッズ）"
+  },
+  {
+    "id": "rule-w14-profit80",
+    "wrestlerId": "w14",
+    "channel": "all",
+    "basis": "profit",
+    "value": 80,
+    "startDate": "2021-11-01",
+    "note": "例外：マッハ隼人は粗利の80%（適用範囲・開始日 要確認）"
+  },
+  {
+    "id": "rule-w13-profit80",
+    "wrestlerId": "w13",
+    "channel": "all",
+    "basis": "profit",
+    "value": 80,
+    "startDate": "2021-11-01",
+    "note": "例外：関根泰誠は粗利の80%（適用範囲・開始日 要確認）"
+  }
+]

@@ -25,6 +25,7 @@ export interface SalesRecord {
   discountAmount?: number;  // 値引き額/unit = listPrice - sellingPrice（分析用）
   campaignName?: string;    // 企画名（saleType=campaign のとき）
   bundleId?: string;        // セット販売グループID（saleType=bundle のとき）
+  wrestlerOverrideId?: string; // インセンティブ帰属選手の上書き（バリエーション商品用。指定時は商品の紐付けを無視して100%帰属）
   memo?: string;
   createdAt: string;
 }
