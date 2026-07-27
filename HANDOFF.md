@@ -76,6 +76,7 @@ ANTHROPIC_API_KEY=<受け渡されたキー>
 | `/sales` | 売上実績一覧 | 全チャネル横断の SalesRecord 一覧。CSV 出力あり |
 | `/events` | 大会管理 | 大会マスタと大会ごとの物販売上（売上明細から自動集計） |
 | `/ec` 配下 | EC管理 | 予算管理表・企画管理・実績管理・売上明細の4タブ（詳細は後述） |
+| `/incentive` 配下 | インセンティブ管理 | 選手マスタ・商品×選手紐付け（**詳細は [HANDOFF_incentive.md](HANDOFF_incentive.md)**。Phase 1まで実装済み、Phase 2以降未着手） |
 | `/suppliers` | 取引先管理 | 仕入先マスタ・商品との紐付け・発注履歴 |
 | `/dashboard` | ダッシュボード | 全体サマリー |
 | `/analytics/...` | 分析 | 月別・カテゴリ別・チャネル別のドリルダウン |
@@ -97,6 +98,7 @@ ANTHROPIC_API_KEY=<受け渡されたキー>
 | `order-history.json` | 発注履歴 |
 | `meeting-history.json` | 会議記録 |
 | `monthly-suggestion.json` / `suggestion-history.json` | AI 月次提案／AI 案出し履歴 |
+| `wrestlers.json` / `goods-incentives.json` | 選手マスタ（13名シード）／商品×選手のインセンティブ設定（既存 goods.json とは分離） |
 | `airregi-products.json` / `airregi-sales.json` / `airregi-stocks.json` | Airレジ CSV 取込データ |
 | `airregi-config.json` | **gitignore 対象**（前述） |
 

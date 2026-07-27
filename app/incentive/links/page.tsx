@@ -1,0 +1,104 @@
+import Link from "next/link";
+import { getAllGoods } from "@/lib/store";
+import { getActiveWrestlers } from "@/lib/wrestlerStore";
+import { getAllGoodsIncentives } from "@/lib/goodsIncentiveStore";
+import { saveGoodsIncentiveAction, clearGoodsIncentiveAction, autoSuggestAction } from "./actions";
+import IncentiveLinksTable from "./IncentiveLinksTable";
+
+export const metadata = { title: "商品×選手 紐付け | 九州プロレス グッズ管理" };
+
+interface Props {
+  searchParams: Promise<{ suggested?: string; unset?: string; q?: string }>;
+}
+
+export default async function IncentiveLinksPage({ searchParams }: Props) {
+  const { suggested, unset, q } = await searchParams;
+  const onlyUnset = unset === "1";
+  const query = (q ?? "").trim();
+
+  const wrestlers = getActiveWrestlers();
+  const incentives = new Map(getAllGoodsIncentives().map((x) => [x.goodsId, x]));
+
+  const allGoods = getAllGoods();
+  const rows = allGoods
+    .map((g) => {
+      const inc = incentives.get(g.id);
+      return {
+        id: g.id,
+        name: g.name,
+        category: inc?.category ?? null,
+        links: inc?.links ?? [],
+      };
+    })
+    .filter((r) => (!onlyUnset || r.category === null))
+    .filter((r) => (!query || r.name.includes(query)));
+
+  const unsetCount = allGoods.filter((g) => !incentives.has(g.id)).length;
+
+  return (
+    <div className="space-y-6">
+      {suggested !== undefined && (
+        <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          ✓ 商品名から {suggested} 件を自動推定しました。内容を確認し、必要に応じて修正してください。
+        </div>
+      )}
+
+      {/* ヘッダー */}
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">インセンティブ管理</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          商品ごとのインセンティブ区分と帰属選手を設定します。会場・ECの5%対象は「個人グッズ」のみです。
+        </p>
+      </div>
+
+      {/* タブナビ */}
+      <div className="flex gap-1 border-b border-gray-200">
+        <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">商品×選手 紐付け</span>
+        <Link href="/incentive/wrestlers" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">選手マスタ</Link>
+      </div>
+
+      {/* ツールバー */}
+      <div className="flex flex-wrap items-center gap-3 rounded border border-gray-200 bg-white px-4 py-3">
+        <form action={autoSuggestAction}>
+          <button
+            type="submit"
+            className="rounded border border-blue-300 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
+          >
+            商品名から自動推定
+          </button>
+        </form>
+        <span className="text-xs text-gray-400">
+          未設定の商品のみが対象です（設定済みは上書きしません）
+        </span>
+        <form method="GET" className="ml-auto flex items-center gap-2">
+          <input
+            type="text"
+            name="q"
+            defaultValue={query}
+            placeholder="商品名で絞り込み"
+            className="rounded border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
+          />
+          <label className="flex items-center gap-1 text-xs text-gray-600">
+            <input type="checkbox" name="unset" value="1" defaultChecked={onlyUnset} />
+            未設定のみ（{unsetCount}件）
+          </label>
+          <button type="submit" className="rounded border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+            絞り込む
+          </button>
+        </form>
+      </div>
+
+      <IncentiveLinksTable
+        goods={rows}
+        wrestlers={wrestlers.map((w) => ({ id: w.id, name: w.name }))}
+        saveAction={saveGoodsIncentiveAction}
+        clearAction={clearGoodsIncentiveAction}
+      />
+
+      <p className="text-xs text-gray-400">
+        ※ 個人グッズ=選手1名100%。複数選手デザインは現行制度では5%対象外ですが、将来の対象化に備えて按分（合計100%）を保持します。
+        バリエーション商品（同一商品で選手別デザイン）の帰属は、売上登録時の上書き指定で対応予定です（Phase 2）。
+      </p>
+    </div>
+  );
+}
