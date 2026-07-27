@@ -173,6 +173,9 @@ export default async function SalesRecordsPage({ searchParams }: Props) {
                     {r.channel === "other" && (
                       <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">単独</span>
                     )}
+                    {r.channel === "hand" && (
+                      <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">手売り</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-700">
                     {r.eventId ? (

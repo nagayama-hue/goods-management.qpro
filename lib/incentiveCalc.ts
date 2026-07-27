@@ -2,8 +2,10 @@ import { getAllSalesRecords } from "@/lib/salesRecordStore";
 import { getAllWrestlers } from "@/lib/wrestlerStore";
 import { getAllGoodsIncentives } from "@/lib/goodsIncentiveStore";
 import { getAllIncentiveRules } from "@/lib/incentiveRuleStore";
-import type { IncentiveRule } from "@/types/incentiveRule";
+import { resolveRule, ruleDescription, calcLineAmount } from "@/lib/incentiveRuleResolve";
 import type { SalesRecord } from "@/types/salesRecord";
+
+export { resolveRule } from "@/lib/incentiveRuleResolve";
 
 /** 明細1行分の計算結果 */
 export interface IncentiveLine {
@@ -51,44 +53,7 @@ export interface MonthlyIncentiveResult {
   costMissingCount: number;
 }
 
-const CHANNEL_LABELS: Record<string, string> = { event: "大会", ec: "EC", other: "単独" };
-
-const BASIS_LABELS: Record<string, string> = { sales: "売上額", profit: "粗利" };
-
-/**
- * ルール解決。優先順位:
- * 選手個別 ＞ 全選手デフォルト ／ チャネル個別 ＞ 全チャネル ／
- * 同条件なら startDate が新しいもの（startDate ≦ 売上日）
- */
-export function resolveRule(
-  rules: IncentiveRule[],
-  wrestlerId: string,
-  channel: "venue" | "ec" | "hand",
-  saleDate: string
-): IncentiveRule | null {
-  const candidates = rules.filter(
-    (r) =>
-      (r.wrestlerId === wrestlerId || r.wrestlerId === null) &&
-      (r.channel === channel || r.channel === "all") &&
-      r.startDate <= saleDate
-  );
-  candidates.sort((a, b) => {
-    const aw = a.wrestlerId ? 1 : 0, bw = b.wrestlerId ? 1 : 0;
-    if (aw !== bw) return bw - aw;
-    const ac = a.channel !== "all" ? 1 : 0, bc = b.channel !== "all" ? 1 : 0;
-    if (ac !== bc) return bc - ac;
-    return b.startDate.localeCompare(a.startDate);
-  });
-  return candidates[0] ?? null;
-}
-
-function ruleDescription(rule: IncentiveRule, sharePercent: number): string {
-  const base =
-    rule.basis === "fixed"
-      ? `¥${rule.value.toLocaleString()}/個`
-      : `${BASIS_LABELS[rule.basis]} ${rule.value}%`;
-  return sharePercent < 100 ? `${base}（按分${sharePercent}%）` : base;
-}
+const CHANNEL_LABELS: Record<string, string> = { event: "大会", ec: "EC", other: "単独", hand: "手売り" };
 
 /** 対象月（YYYY-MM）の選手別インセンティブを計算する */
 export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
@@ -116,28 +81,43 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
     }
 
     const channelRaw = r.channel ?? "event";
-    // event/other は会場販売として扱う（手売り hand は Phase 4 で追加予定）
-    const ruleChannel: "venue" | "ec" = channelRaw === "ec" ? "ec" : "venue";
+    // event/other は会場販売として扱う
+    const ruleChannel: "venue" | "ec" | "hand" =
+      channelRaw === "ec" ? "ec" : channelRaw === "hand" ? "hand" : "venue";
 
-    const inc = incentives.get(r.goodsId);
-    if (!inc) {
-      exclude("区分未設定の商品", r);
-      continue;
-    }
-    // 現行制度: 会場・EC の対象は選手個人グッズのみ
-    if (inc.category === "multi") {
-      exclude("複数選手デザイン商品（現行制度では対象外）", r);
-      continue;
-    }
-    if (inc.category === "org") {
-      exclude("団体共通グッズ（対象外）", r);
-      continue;
+    // 手売り: 全グッズ対象・帰属は売った選手本人。Lark申請なしは対象外
+    if (ruleChannel === "hand") {
+      if (!r.handSaleReported) {
+        exclude("未申請の手売り（Lark申請なし）", r);
+        continue;
+      }
+      if (!r.wrestlerOverrideId) {
+        exclude("手売りの販売者未指定", r);
+        continue;
+      }
     }
 
-    // 帰属: 売上行の上書き指定があれば紐付けを無視して100%帰属（バリエーション商品用）
-    const links = r.wrestlerOverrideId
-      ? [{ wrestlerId: r.wrestlerOverrideId, sharePercent: 100 }]
-      : inc.links;
+    let links: { wrestlerId: string; sharePercent: number }[];
+    if (r.wrestlerOverrideId) {
+      // 売上登録時に帰属選手が明示されている場合は、商品の区分・紐付けを無視して100%帰属
+      links = [{ wrestlerId: r.wrestlerOverrideId, sharePercent: 100 }];
+    } else {
+      const inc = incentives.get(r.goodsId);
+      if (!inc) {
+        exclude("区分未設定の商品", r);
+        continue;
+      }
+      // 現行制度: 会場・EC の対象は選手個人グッズのみ
+      if (inc.category === "multi") {
+        exclude("複数選手デザイン商品（現行制度では対象外）", r);
+        continue;
+      }
+      if (inc.category === "org") {
+        exclude("団体共通グッズ（対象外）", r);
+        continue;
+      }
+      links = inc.links;
+    }
 
     let anyRule = false;
     for (const link of links) {
@@ -145,19 +125,9 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
       if (!rule) continue;
       anyRule = true;
 
-      let baseAmount: number;
-      let amount: number;
-      if (rule.basis === "sales") {
-        baseAmount = r.revenue;
-        amount = (r.revenue * rule.value) / 100;
-      } else if (rule.basis === "profit") {
-        baseAmount = r.grossProfit;
-        amount = (r.grossProfit * rule.value) / 100;
-      } else {
-        baseAmount = r.quantity * rule.value;
-        amount = baseAmount;
-      }
-      amount = Math.floor((amount * link.sharePercent) / 100); // 明細行ごとに円未満切り捨て
+      const { baseAmount, amount } = calcLineAmount(
+        rule, r.revenue, r.grossProfit, r.quantity, link.sharePercent
+      );
 
       lines.push({
         wrestlerId: link.wrestlerId,

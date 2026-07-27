@@ -47,7 +47,8 @@ export function buildDetailCsv(records: SalesRecord[]): string {
       r.revenue > 0 ? Math.round((r.grossProfit / r.revenue) * 100) : 0;
     const channelJa =
       r.channel === "ec" ? "EC" :
-      r.channel === "other" ? "単独" : "大会";
+      r.channel === "other" ? "単独" :
+      r.channel === "hand" ? "手売り" : "大会";
     return [
       r.saleDate,
       channelJa,
