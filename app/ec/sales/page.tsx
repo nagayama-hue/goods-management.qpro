@@ -22,6 +22,9 @@ export default async function EcSalesPage({ searchParams }: Props) {
   const totalGrossProfit = records.reduce((s, r) => s + r.grossProfit, 0);
   const totalQuantity    = records.reduce((s, r) => s + r.quantity, 0);
 
+  // CSV出力用: 明細が存在する月（新しい順）
+  const months = [...new Set(records.map((r) => r.saleDate.slice(0, 7)))].sort().reverse();
+
   return (
     <div className="space-y-6">
       {saved && (
@@ -53,6 +56,46 @@ export default async function EcSalesPage({ searchParams }: Props) {
         <Link href="/ec/results"   className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800">実績管理</Link>
         <span className="border-b-2 border-gray-900 px-4 py-2 text-sm font-medium text-gray-900">売上明細</span>
       </div>
+
+      {/* CSV出力（月選択） */}
+      {records.length > 0 && (
+        <form
+          action="/api/ec/sales/export"
+          method="GET"
+          className="flex flex-wrap items-center gap-2 rounded border border-gray-200 bg-white px-4 py-3"
+        >
+          <span className="text-xs font-semibold text-gray-700">CSV出力</span>
+          <select
+            name="month"
+            defaultValue={months[0] ?? ""}
+            className="rounded border border-gray-300 px-2 py-1.5 text-xs text-gray-700 focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">全期間</option>
+            {months.map((m) => (
+              <option key={m} value={m}>{m.replace("-", "年")}月</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            name="mode"
+            value="summary"
+            className="rounded border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+          >
+            商品別CSV
+          </button>
+          <button
+            type="submit"
+            name="mode"
+            value="detail"
+            className="rounded border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+          >
+            明細CSV
+          </button>
+          <span className="text-xs text-gray-400">
+            商品別=何がどのくらい売れたかの集計 / 明細=1行ずつの全記録
+          </span>
+        </form>
+      )}
 
       {/* サマリー */}
       {records.length > 0 && (

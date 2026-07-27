@@ -154,12 +154,30 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
       <section className="rounded border border-gray-200 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-700">物販実績</h2>
-          <Link
-            href={`/events/${id}/sales/new`}
-            className="rounded border border-green-300 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
-          >
-            ＋ 実績を追加
-          </Link>
+          <div className="flex items-center gap-2">
+            {salesRecords.length > 0 && (
+              <>
+                <a
+                  href={`/api/events/${id}/sales/export?mode=summary`}
+                  className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  商品別CSV
+                </a>
+                <a
+                  href={`/api/events/${id}/sales/export`}
+                  className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  明細CSV
+                </a>
+              </>
+            )}
+            <Link
+              href={`/events/${id}/sales/new`}
+              className="rounded border border-green-300 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+            >
+              ＋ 実績を追加
+            </Link>
+          </div>
         </div>
 
         {salesRecords.length === 0 ? (
