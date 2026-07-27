@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { getGoodsById } from "@/lib/store";
 import { getAllEvents } from "@/lib/eventStore";
+import { getActiveWrestlers } from "@/lib/wrestlerStore";
+import { getAllIncentiveRules } from "@/lib/incentiveRuleStore";
+import { getGoodsIncentiveByGoodsId } from "@/lib/goodsIncentiveStore";
 import { recordSaleAction } from "./actions";
 import SalesNewForm from "./SalesNewForm";
 
@@ -25,12 +28,20 @@ export default async function SalesNewPage({ params, searchParams }: Props) {
 
   const boundAction = recordSaleAction.bind(null, id);
 
+  const wrestlers = getActiveWrestlers().map((w) => ({ id: w.id, name: w.name }));
+  const rules = getAllIncentiveRules();
+  const inc = getGoodsIncentiveByGoodsId(id);
+  const goodsIncentive = inc ? { category: inc.category, links: inc.links } : null;
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-gray-900">売上を登録</h1>
       <SalesNewForm
         goods={goods}
         events={events}
+        wrestlers={wrestlers}
+        rules={rules}
+        goodsIncentive={goodsIncentive}
         action={boundAction}
         initialBundleId={bundleId}
         savedBundle={saved === "bundle"}

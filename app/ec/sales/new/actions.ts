@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getGoodsById, saveGoods } from "@/lib/store";
 import { addSalesRecord } from "@/lib/salesRecordStore";
+import { getWrestlerById } from "@/lib/wrestlerStore";
 import { getCampaignById } from "@/lib/ecCampaignStore";
 import { parseSaleTypeFields } from "@/lib/saleTypeUtils";
 import type { SalesRecord } from "@/types/salesRecord";
@@ -30,6 +31,12 @@ export async function recordEcSaleAction(
   const ecCampaignId = formData.get("ecCampaignId")?.toString() || undefined;
   const ecCampaign   = ecCampaignId ? getCampaignById(ecCampaignId) : undefined;
   if (ecCampaignId && !ecCampaign) return { error: "指定されたEC企画が見つかりません。" };
+
+  // インセンティブ帰属選手の指定（任意。未指定なら商品の紐付けに従う）
+  const wrestlerOverrideId = formData.get("wrestlerOverrideId")?.toString() || undefined;
+  if (wrestlerOverrideId && !getWrestlerById(wrestlerOverrideId)) {
+    return { error: "指定された選手が見つかりません。" };
+  }
 
   const goods = getGoodsById(goodsId);
   if (!goods) return { error: "商品が見つかりません。" };
@@ -74,6 +81,7 @@ export async function recordEcSaleAction(
     channel:       "ec",
     ecCampaignId,
     ecCampaignName: ecCampaign?.name,
+    wrestlerOverrideId,
     saleType:      saleTypeFields.saleType,
     listPrice:     saleTypeFields.listPrice,
     discountAmount: saleTypeFields.discountAmount || undefined,
@@ -102,6 +110,7 @@ export async function recordEcSaleAction(
   revalidatePath("/sales");
   revalidatePath(`/goods/${goodsId}`);
   revalidatePath("/");
+  revalidatePath("/incentive");
 
   if (saleTypeFields.saleType === "bundle" && saleTypeFields.bundleId) {
     redirect(`/ec/sales/new?bundleId=${encodeURIComponent(saleTypeFields.bundleId)}&saved=bundle`);

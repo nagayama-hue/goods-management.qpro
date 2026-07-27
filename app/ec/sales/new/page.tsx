@@ -1,5 +1,8 @@
 import { getAllGoods } from "@/lib/store";
 import { getAllCampaigns } from "@/lib/ecCampaignStore";
+import { getActiveWrestlers } from "@/lib/wrestlerStore";
+import { getAllIncentiveRules } from "@/lib/incentiveRuleStore";
+import { getAllGoodsIncentives } from "@/lib/goodsIncentiveStore";
 import { recordEcSaleAction } from "./actions";
 import EcSalesForm from "./EcSalesForm";
 
@@ -24,12 +27,21 @@ export default async function EcSalesNewPage({ searchParams }: Props) {
     .filter((c) => c.targetMonth >= cutoffYm)
     .sort((a, b) => b.targetMonth.localeCompare(a.targetMonth));
 
+  const wrestlers = getActiveWrestlers().map((w) => ({ id: w.id, name: w.name }));
+  const rules = getAllIncentiveRules();
+  const goodsIncentives = Object.fromEntries(
+    getAllGoodsIncentives().map((x) => [x.goodsId, { category: x.category, links: x.links }])
+  );
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-gray-900">EC売上を登録</h1>
       <EcSalesForm
         goodsList={goodsList}
         campaigns={campaigns}
+        wrestlers={wrestlers}
+        rules={rules}
+        goodsIncentives={goodsIncentives}
         action={recordEcSaleAction}
         initialBundleId={bundleId}
         savedBundle={saved === "bundle"}

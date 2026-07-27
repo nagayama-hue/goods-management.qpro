@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getGoodsById, saveGoods } from "@/lib/store";
 import { getEventById } from "@/lib/eventStore";
 import { addSalesRecord } from "@/lib/salesRecordStore";
+import { getWrestlerById } from "@/lib/wrestlerStore";
 import { parseSaleTypeFields } from "@/lib/saleTypeUtils";
 import type { SalesRecord } from "@/types/salesRecord";
 
@@ -29,6 +30,16 @@ export async function recordSaleAction(
   if (sellingPrice <= 0) return { error: "販売単価を入力してください。" };
 
   const saleTypeFields = parseSaleTypeFields(formData, sellingPrice);
+
+  // インセンティブ（帰属選手の指定・手売り）
+  const wrestlerOverrideId = formData.get("wrestlerOverrideId")?.toString() || undefined;
+  const isHandSale = formData.get("isHandSale") === "on";
+  if (wrestlerOverrideId && !getWrestlerById(wrestlerOverrideId)) {
+    return { error: "指定された選手が見つかりません。" };
+  }
+  if (isHandSale && !wrestlerOverrideId) {
+    return { error: "手売りの場合は「売った選手」を選択してください。" };
+  }
 
   // 大会紐付け
   let eventId: string | undefined;
@@ -82,9 +93,11 @@ export async function recordSaleAction(
     grossProfit: (sellingPrice - unitCost) * quantity,
     saleDate,
     location,
-    channel:       eventId ? "event" : "other",
+    channel:       isHandSale ? "hand" : eventId ? "event" : "other",
     eventId,
     eventName,
+    wrestlerOverrideId,
+    handSaleReported: isHandSale ? formData.get("handSaleReported") === "on" : undefined,
     saleType:      saleTypeFields.saleType,
     listPrice:     saleTypeFields.listPrice,
     discountAmount: saleTypeFields.discountAmount || undefined,
@@ -113,6 +126,7 @@ export async function recordSaleAction(
   addSalesRecord(record);
   revalidatePath(`/goods/${id}`);
   revalidatePath("/");
+  revalidatePath("/incentive");
   if (eventId) {
     revalidatePath(`/events/${eventId}`);
     revalidatePath("/events");

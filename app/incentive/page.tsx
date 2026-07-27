@@ -28,24 +28,16 @@ export default async function IncentivePage({ searchParams }: Props) {
     <div className="space-y-6">
       {saved && (
         <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          ✓ 売上を登録しました。在庫が減り、下の集計に反映されています。
+          ✓ 売上を登録しました。集計に反映されています。
         </div>
       )}
 
       {/* ヘッダー */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">インセンティブ管理</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            選手別の月次インセンティブを自動集計します。月次で確定し、翌月の給与支払い時に振込です。
-          </p>
-        </div>
-        <a
-          href="/incentive/sales/new"
-          className="shrink-0 rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-        >
-          ＋ 売上を登録
-        </a>
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">インセンティブ管理</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          売上登録時に入力されたインセンティブ情報を、選手別・月別に自動集計します。月次で確定し、翌月の給与支払い時に振込です。
+        </p>
       </div>
 
       <IncentiveTabs active="/incentive" />
@@ -117,7 +109,8 @@ export default async function IncentivePage({ searchParams }: Props) {
       <MonthlyIncentiveTable byWrestler={result.byWrestler} />
 
       <p className="text-xs text-gray-400">
-        ※ 会場・EC＝選手個人グッズのみ税込売価の5%（「＋ 売上を登録」で選手を指定した売上は区分に関係なく帰属）。
+        ※ インセンティブの入力は各売上登録フォーム（商品・大会・EC）の「インセンティブ」ブロックで行います。
+        会場・EC＝選手個人グッズのみ税込売価の5%（登録時に選手を指定した売上は区分に関係なくその選手に帰属）。
         手売り＝全グッズ対象10%・Lark申請済みのみ。金額は明細行ごとに円未満切り捨て。按分商品は按分後に切り捨て。
         単独販売（channel=other）は会場販売として計算しています。
       </p>

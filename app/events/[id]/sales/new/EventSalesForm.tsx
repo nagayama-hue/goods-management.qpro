@@ -4,6 +4,8 @@ import { useActionState, useState, useMemo } from "react";
 import Link from "next/link";
 import type { Goods } from "@/types/goods";
 import type { EventTarget } from "@/types/event";
+import type { IncentiveRule } from "@/types/incentiveRule";
+import IncentiveBlock, { type IncentiveGoodsInfo } from "@/components/IncentiveBlock";
 
 const SALE_TYPE_LABELS: Record<string, string> = {
   normal:            "通常販売",
@@ -16,6 +18,9 @@ const SALE_TYPE_LABELS: Record<string, string> = {
 interface Props {
   event: EventTarget;
   goodsList: Goods[];
+  wrestlers: { id: string; name: string }[];
+  rules: IncentiveRule[];
+  goodsIncentives: Record<string, IncentiveGoodsInfo>;
   initialBundleId?: string;
   savedBundle?: boolean;
   action: (
@@ -24,7 +29,7 @@ interface Props {
   ) => Promise<{ error: string } | null>;
 }
 
-export default function EventSalesForm({ event, goodsList, initialBundleId, savedBundle, action }: Props) {
+export default function EventSalesForm({ event, goodsList, wrestlers, rules, goodsIncentives, initialBundleId, savedBundle, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, null);
 
   const [selectedGoodsId, setSelectedGoodsId] = useState<string>(goodsList[0]?.id ?? "");
@@ -299,6 +304,18 @@ export default function EventSalesForm({ event, goodsList, initialBundleId, save
           )}
         </div>
       </section>
+
+      {/* インセンティブ */}
+      <IncentiveBlock
+        wrestlers={wrestlers}
+        rules={rules}
+        baseChannel="venue"
+        goodsIncentive={goodsIncentives[selectedGoodsId] ?? null}
+        sellingPrice={sellingPrice}
+        quantity={quantity}
+        unitCost={unitCost}
+        saleDate={event.date}
+      />
 
       {/* 販売情報 */}
       <section className="rounded border border-gray-200 bg-white p-4">
