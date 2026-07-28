@@ -103,13 +103,18 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
       }
     }
 
+    const inc = incentives.get(r.goodsId);
+    // multi（タッグ等）は選手指定に関わらず常に按分（合計5%を分配）。
+    // 手売りだけは例外で、売った選手本人に10%（区分不問）
+    const isMulti = ruleChannel !== "hand" && inc?.category === "multi";
+
     let links: { wrestlerId: string; sharePercent: number }[];
-    let isMulti = false;
-    if (r.wrestlerOverrideId) {
+    if (isMulti) {
+      links = inc!.links;
+    } else if (r.wrestlerOverrideId) {
       // 売上登録時に帰属選手が明示されている場合は、商品の区分・紐付けを無視して100%帰属
       links = [{ wrestlerId: r.wrestlerOverrideId, sharePercent: 100 }];
     } else {
-      const inc = incentives.get(r.goodsId);
       if (!inc) {
         exclude("区分未設定の商品", r);
         continue;
@@ -123,8 +128,6 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
         exclude("帰属選手未指定（全選手展開商品）", r);
         continue;
       }
-      // multi（タッグ等）: 合計5%を按分で分ける（2026-07-28 運用決定）
-      isMulti = inc.category === "multi";
       links = inc.links;
     }
 
