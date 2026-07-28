@@ -27,9 +27,9 @@ interface Props {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  personal: "個人グッズ（5%対象）",
-  multi: "複数選手（5%対象外）",
-  org: "団体共通（5%対象外）",
+  personal: "個人グッズ（5%）",
+  multi: "複数選手・タッグ（10%を按分）",
+  org: "団体共通（対象外）",
 };
 
 /** 均等按分を再計算（先頭が端数を吸収して合計100を保つ） */

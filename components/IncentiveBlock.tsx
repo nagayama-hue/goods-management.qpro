@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { resolveRule, ruleDescription, calcLineAmount } from "@/lib/incentiveRuleResolve";
+import {
+  resolveRule,
+  ruleDescription,
+  calcLineAmount,
+  calcMultiLineAmount,
+  MULTI_TOTAL_SALES_PERCENT,
+} from "@/lib/incentiveRuleResolve";
 import type { IncentiveRule } from "@/types/incentiveRule";
 
 export interface IncentiveGoodsInfo {
@@ -29,7 +35,6 @@ function yen(n: number): string {
 }
 
 const EXCLUDED_LABELS: Record<string, string> = {
-  multi: "複数選手デザインのため対象外（選手を指定すると帰属できます）",
   org: "団体共通グッズのため対象外（選手を指定すると帰属できます）",
 };
 
@@ -59,9 +64,10 @@ export default function IncentiveBlock({
 
   // プレビュー計算（実際の集計は販売日時点のルールで再計算される）
   let preview: { text: string; amount: number | null; warn: boolean; costMissing?: boolean };
+  const isMulti = !wrestlerId && !isHand && goodsIncentive?.category === "multi";
   const links = wrestlerId
     ? [{ wrestlerId, sharePercent: 100 }]
-    : goodsIncentive?.category === "personal"
+    : goodsIncentive?.category === "personal" || goodsIncentive?.category === "multi"
       ? goodsIncentive.links
       : null;
 
@@ -69,6 +75,13 @@ export default function IncentiveBlock({
     preview = { text: "手売りは「売った選手」の選択が必要です", amount: null, warn: true };
   } else if (isHand && !handReported) {
     preview = { text: "Lark申請なしの手売りはインセンティブ対象外です（売上・在庫のみ計上）", amount: null, warn: true };
+  } else if (isMulti && links && links.length > 0) {
+    // 複数選手商品: 合計10%を按分（例: 2人均等なら5%ずつ）
+    const total = links.reduce((s, l) => s + calcMultiLineAmount(revenue, l.sharePercent), 0);
+    const names = links
+      .map((l) => wrestlers.find((w) => w.id === l.wrestlerId)?.name ?? "?")
+      .join("・");
+    preview = { text: `${names}（複数選手 ${MULTI_TOTAL_SALES_PERCENT}%を按分）`, amount: total, warn: false };
   } else if (!links || links.length === 0) {
     const label = goodsIncentive
       ? EXCLUDED_LABELS[goodsIncentive.category] ?? "対象外"

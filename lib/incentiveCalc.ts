@@ -2,7 +2,13 @@ import { getAllSalesRecords } from "@/lib/salesRecordStore";
 import { getAllWrestlers } from "@/lib/wrestlerStore";
 import { getAllGoodsIncentives } from "@/lib/goodsIncentiveStore";
 import { getAllIncentiveRules } from "@/lib/incentiveRuleStore";
-import { resolveRule, ruleDescription, calcLineAmount } from "@/lib/incentiveRuleResolve";
+import {
+  resolveRule,
+  ruleDescription,
+  calcLineAmount,
+  calcMultiLineAmount,
+  MULTI_TOTAL_SALES_PERCENT,
+} from "@/lib/incentiveRuleResolve";
 import type { SalesRecord } from "@/types/salesRecord";
 
 export { resolveRule } from "@/lib/incentiveRuleResolve";
@@ -98,6 +104,7 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
     }
 
     let links: { wrestlerId: string; sharePercent: number }[];
+    let isMulti = false;
     if (r.wrestlerOverrideId) {
       // 売上登録時に帰属選手が明示されている場合は、商品の区分・紐付けを無視して100%帰属
       links = [{ wrestlerId: r.wrestlerOverrideId, sharePercent: 100 }];
@@ -107,20 +114,36 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
         exclude("区分未設定の商品", r);
         continue;
       }
-      // 現行制度: 会場・EC の対象は選手個人グッズのみ
-      if (inc.category === "multi") {
-        exclude("複数選手デザイン商品（現行制度では対象外）", r);
-        continue;
-      }
       if (inc.category === "org") {
         exclude("団体共通グッズ（対象外）", r);
         continue;
       }
+      // multi（タッグ等）: 合計10%を按分で分ける（2026-07-28 運用決定）
+      isMulti = inc.category === "multi";
       links = inc.links;
     }
 
     let anyRule = false;
     for (const link of links) {
+      if (isMulti) {
+        // 複数選手商品: ルール解決せず一律「売上額10%×按分」
+        anyRule = true;
+        lines.push({
+          wrestlerId: link.wrestlerId,
+          wrestlerName: wrestlerName(link.wrestlerId),
+          saleDate: r.saleDate,
+          goodsName: r.goodsName,
+          variantLabel: r.variantLabel,
+          channelLabel: CHANNEL_LABELS[channelRaw] ?? channelRaw,
+          quantity: r.quantity,
+          baseAmount: r.revenue,
+          ruleDesc: `複数選手 ${MULTI_TOTAL_SALES_PERCENT}%を按分（${link.sharePercent}%）`,
+          amount: calcMultiLineAmount(r.revenue, link.sharePercent),
+          costMissing: false,
+        });
+        continue;
+      }
+
       const rule = resolveRule(rules, link.wrestlerId, ruleChannel, r.saleDate);
       if (!rule) continue;
       anyRule = true;
@@ -143,7 +166,7 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
         costMissing: rule.basis === "profit" && r.unitCost === 0,
       });
     }
-    if (!anyRule) exclude("適用ルールなし", r);
+    if (!anyRule) exclude(isMulti ? "複数選手商品（紐付け選手なし）" : "適用ルールなし", r);
   }
 
   const byWrestlerMap = new Map<string, WrestlerIncentive>();
