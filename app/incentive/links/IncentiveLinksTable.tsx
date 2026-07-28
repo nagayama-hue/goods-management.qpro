@@ -28,7 +28,8 @@ interface Props {
 
 const CATEGORY_LABELS: Record<string, string> = {
   personal: "個人グッズ（5%）",
-  multi: "複数選手・タッグ（10%を按分）",
+  multi: "複数選手・タッグ（5%を按分）",
+  all: "全選手展開（売上登録時に選手を指定）",
   org: "団体共通（対象外）",
 };
 
@@ -59,7 +60,7 @@ function Row({ goods, wrestlers, saveAction, clearAction }: {
     setMessage(null);
     if (next === "personal" && links.length > 1) setLinks([{ ...links[0], sharePercent: 100 }]);
     if (next === "personal" && links.length === 1) setLinks([{ ...links[0], sharePercent: 100 }]);
-    if (next === "org") setLinks([]);
+    if (next === "org" || next === "all") setLinks([]);
   }
 
   function toggleWrestler(wid: string) {
@@ -117,9 +118,13 @@ function Row({ goods, wrestlers, saveAction, clearAction }: {
         </select>
       </td>
       <td className="px-4 py-3 align-top">
-        {category === "org" || category === "" ? (
+        {category === "org" || category === "all" || category === "" ? (
           <span className="text-xs text-gray-400">
-            {category === "org" ? "紐付けなし（団体共通）" : "—"}
+            {category === "org"
+              ? "紐付けなし（団体共通）"
+              : category === "all"
+                ? "紐付け不要 — 売上登録時に「帰属選手の指定」で売れた選手を選びます"
+                : "—"}
           </span>
         ) : (
           <div className="flex flex-wrap items-center gap-1.5">

@@ -32,10 +32,10 @@ export const BASIS_LABELS: Record<string, string> = { sales: "売上額", profit
 
 /**
  * 複数選手デザイン商品（タッグ等）の合計インセンティブ率（%・売上額ベース）。
- * 合計10%を紐付け選手の按分%で分ける（2人均等なら5%ずつ、3人均等なら約3.3%ずつ）。
- * 2026-07-28 運用決定。
+ * 合計5%を紐付け選手の按分%で分ける（2人均等なら2.5%ずつ）。
+ * 2026-07-28 運用決定（当初10%→5%に訂正）。
  */
-export const MULTI_TOTAL_SALES_PERCENT = 10;
+export const MULTI_TOTAL_SALES_PERCENT = 5;
 
 /** 複数選手商品の1明細行×1選手分の金額（行ごと円未満切り捨て） */
 export function calcMultiLineAmount(revenue: number, sharePercent: number): number {

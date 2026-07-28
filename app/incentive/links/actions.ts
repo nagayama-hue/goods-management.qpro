@@ -21,7 +21,7 @@ export async function saveGoodsIncentiveAction(
   category: string,
   links: WrestlerLink[]
 ): Promise<{ ok: boolean; error?: string }> {
-  if (!["personal", "multi", "org"].includes(category)) {
+  if (!["personal", "multi", "all", "org"].includes(category)) {
     return { ok: false, error: "区分を選択してください。" };
   }
   const cat = category as IncentiveCategory;
@@ -43,7 +43,7 @@ export async function saveGoodsIncentiveAction(
       return { ok: false, error: `按分の合計が ${sum}% です。100% にしてください。` };
     }
   } else {
-    normalized = []; // org: 団体共通は紐付けなし
+    normalized = []; // org: 団体共通／all: 全選手展開（売上登録時に選手指定）は紐付けなし
   }
 
   saveGoodsIncentive({

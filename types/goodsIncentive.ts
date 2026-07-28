@@ -1,10 +1,11 @@
 /**
  * インセンティブ区分
- * - personal: 選手個人グッズ（会場・EC 5% の対象）
- * - multi:    複数選手デザイン（現行制度では 5% 対象外。手売り10%は対象。按分は将来対象化の布石）
- * - org:      団体共通グッズ（同上）
+ * - personal: 選手個人グッズ（会場・EC 売上の5%）
+ * - multi:    複数選手・タッグデザイン（売上の5%を紐付け選手の按分%で分配）
+ * - all:      全選手展開（アクキー・ポートレート等。紐付け不要、売上登録時に売れた選手を指定して帰属）
+ * - org:      団体共通グッズ（対象外）
  */
-export type IncentiveCategory = "personal" | "multi" | "org";
+export type IncentiveCategory = "personal" | "multi" | "all" | "org";
 
 export interface WrestlerLink {
   wrestlerId: string;

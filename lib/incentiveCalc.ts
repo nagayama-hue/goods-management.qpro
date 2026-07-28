@@ -118,7 +118,12 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
         exclude("団体共通グッズ（対象外）", r);
         continue;
       }
-      // multi（タッグ等）: 合計10%を按分で分ける（2026-07-28 運用決定）
+      // 全選手展開（アクキー等）: 売上登録時の帰属選手指定が必須。未指定は対象外として可視化
+      if (inc.category === "all") {
+        exclude("帰属選手未指定（全選手展開商品）", r);
+        continue;
+      }
+      // multi（タッグ等）: 合計5%を按分で分ける（2026-07-28 運用決定）
       isMulti = inc.category === "multi";
       links = inc.links;
     }

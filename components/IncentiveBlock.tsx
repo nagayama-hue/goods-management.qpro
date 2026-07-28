@@ -9,9 +9,10 @@ import {
   MULTI_TOTAL_SALES_PERCENT,
 } from "@/lib/incentiveRuleResolve";
 import type { IncentiveRule } from "@/types/incentiveRule";
+import type { IncentiveCategory } from "@/types/goodsIncentive";
 
 export interface IncentiveGoodsInfo {
-  category: "personal" | "multi" | "org";
+  category: IncentiveCategory;
   links: { wrestlerId: string; sharePercent: number }[];
 }
 
@@ -75,6 +76,12 @@ export default function IncentiveBlock({
     preview = { text: "手売りは「売った選手」の選択が必要です", amount: null, warn: true };
   } else if (isHand && !handReported) {
     preview = { text: "Lark申請なしの手売りはインセンティブ対象外です（売上・在庫のみ計上）", amount: null, warn: true };
+  } else if (!wrestlerId && goodsIncentive?.category === "all") {
+    preview = {
+      text: "全選手展開商品です。「帰属選手の指定」で売れた選手を選んでください（未指定は集計対象外）",
+      amount: null,
+      warn: true,
+    };
   } else if (isMulti && links && links.length > 0) {
     // 複数選手商品: 合計10%を按分（例: 2人均等なら5%ずつ）
     const total = links.reduce((s, l) => s + calcMultiLineAmount(revenue, l.sharePercent), 0);
