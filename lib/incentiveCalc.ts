@@ -104,9 +104,14 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
     }
 
     const inc = incentives.get(r.goodsId);
-    // multi（タッグ等）は選手指定に関わらず常に按分（合計5%を分配）。
-    // 手売りだけは例外で、売った選手本人に10%（区分不問）
-    const isMulti = ruleChannel !== "hand" && inc?.category === "multi";
+    // multi（タッグ等）: 紐付けは按分計算の基本情報。
+    // 指定選手が紐付け内（または指定なし）なら按分（合計5%を分配）。
+    // 紐付け外の選手が指定された場合は実売の実態を優先し、その選手に個人扱いで帰属。
+    // 手売りは例外で、売った選手本人に10%（区分不問）
+    const isMulti =
+      ruleChannel !== "hand" &&
+      inc?.category === "multi" &&
+      (!r.wrestlerOverrideId || inc.links.some((l) => l.wrestlerId === r.wrestlerOverrideId));
 
     let links: { wrestlerId: string; sharePercent: number }[];
     if (isMulti) {

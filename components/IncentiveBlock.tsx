@@ -65,8 +65,13 @@ export default function IncentiveBlock({
 
   // プレビュー計算（実際の集計は販売日時点のルールで再計算される）
   let preview: { text: string; amount: number | null; warn: boolean; costMissing?: boolean };
-  // タッグ（複数選手）商品は選手指定に関わらず常に按分（手売りのみ例外）
-  const isMulti = !isHand && goodsIncentive?.category === "multi";
+  // タッグ（複数選手）商品: 紐付けは按分計算の基本情報。
+  // 指定選手が紐付け内（または指定なし）なら按分、紐付け外の選手を指定した場合はその選手に個人扱いで帰属。
+  // 手売りは売った選手本人に10%（区分不問）
+  const isMulti =
+    !isHand &&
+    goodsIncentive?.category === "multi" &&
+    (!wrestlerId || goodsIncentive.links.some((l) => l.wrestlerId === wrestlerId));
   const links = isMulti
     ? goodsIncentive!.links
     : wrestlerId
@@ -91,7 +96,7 @@ export default function IncentiveBlock({
     const names = links
       .map((l) => wrestlers.find((w) => w.id === l.wrestlerId)?.name ?? "?")
       .join("・");
-    const note = wrestlerId ? " ※タッグ商品は選手指定に関わらず按分で計算されます" : "";
+    const note = wrestlerId ? " ※紐付け選手のため按分どおり計算されます" : "";
     preview = { text: `${names}（複数選手 ${MULTI_TOTAL_SALES_PERCENT}%を按分）${note}`, amount: total, warn: false };
   } else if (!links || links.length === 0) {
     const label = goodsIncentive
