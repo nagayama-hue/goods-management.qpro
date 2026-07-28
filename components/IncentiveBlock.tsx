@@ -91,13 +91,18 @@ export default function IncentiveBlock({
       warn: true,
     };
   } else if (isMulti && links && links.length > 0) {
-    // 複数選手商品: 合計5%を按分（例: 2人均等なら2.5%ずつ）
-    const total = links.reduce((s, l) => s + calcMultiLineAmount(revenue, l.sharePercent), 0);
-    const names = links
-      .map((l) => wrestlers.find((w) => w.id === l.wrestlerId)?.name ?? "?")
-      .join("・");
-    const note = wrestlerId ? " ※紐付け選手のため按分どおり計算されます" : "";
-    preview = { text: `${names}（複数選手 ${MULTI_TOTAL_SALES_PERCENT}%を按分）${note}`, amount: total, warn: false };
+    // 複数選手商品: 合計5%を按分（例: 2人均等なら2.5%ずつ）。選手ごとの内訳を表示する
+    const perWrestler = links.map((l) => ({
+      name: wrestlers.find((w) => w.id === l.wrestlerId)?.name ?? "?",
+      amount: calcMultiLineAmount(revenue, l.sharePercent),
+    }));
+    const total = perWrestler.reduce((s, x) => s + x.amount, 0);
+    const breakdown = perWrestler.map((x) => `${x.name} ${yen(x.amount)}`).join(" ＋ ");
+    preview = {
+      text: `内訳: ${breakdown}（複数選手 合計${MULTI_TOTAL_SALES_PERCENT}%を人数で按分）`,
+      amount: total,
+      warn: false,
+    };
   } else if (!links || links.length === 0) {
     const label = goodsIncentive
       ? EXCLUDED_LABELS[goodsIncentive.category] ?? "対象外"
