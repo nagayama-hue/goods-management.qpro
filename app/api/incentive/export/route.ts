@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   } else {
     const headers = [
       "対象月", "選手", "販売日", "チャネル", "商品名", "バリエーション",
-      "数量", "対象額", "適用ルール", "インセンティブ額", "備考",
+      "数量", "対象額", "適用ルール", "インセンティブ額", "メモ", "備考",
     ];
     const rows = result.byWrestler.flatMap((w) =>
       w.lines.map((l) =>
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
           l.baseAmount,
           l.ruleDesc,
           l.amount,
+          l.memo ?? "",
           l.costMissing ? "原価未設定（粗利が過大の可能性）" : "",
         ].map(csvEscape).join(",")
       )

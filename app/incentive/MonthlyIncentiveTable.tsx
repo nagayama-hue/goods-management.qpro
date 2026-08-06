@@ -66,6 +66,7 @@ export default function MonthlyIncentiveTable({ byWrestler }: { byWrestler: Wres
                           <th className="px-2 py-1.5 text-right font-medium">数量</th>
                           <th className="px-2 py-1.5 text-right font-medium">対象額</th>
                           <th className="px-2 py-1.5 text-left font-medium">適用ルール</th>
+                          <th className="px-2 py-1.5 text-left font-medium">メモ</th>
                           <th className="px-2 py-1.5 text-right font-medium">金額</th>
                         </tr>
                       </thead>
@@ -88,6 +89,7 @@ export default function MonthlyIncentiveTable({ byWrestler }: { byWrestler: Wres
                             <td className="px-2 py-1.5 text-right tabular-nums text-gray-700">{l.quantity}個</td>
                             <td className="px-2 py-1.5 text-right tabular-nums text-gray-700">{yen(l.baseAmount)}</td>
                             <td className="px-2 py-1.5 text-gray-600">{l.ruleDesc}</td>
+                            <td className="px-2 py-1.5 text-gray-500">{l.memo ?? ""}</td>
                             <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-gray-900">{yen(l.amount)}</td>
                           </tr>
                         ))}

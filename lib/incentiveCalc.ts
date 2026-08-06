@@ -31,6 +31,8 @@ export interface IncentiveLine {
   amount: number;
   /** 粗利ベースなのに原価未設定（=粗利が過大の可能性） */
   costMissing: boolean;
+  /** 売上登録時のメモ（備考） */
+  memo?: string;
 }
 
 export interface WrestlerIncentive {
@@ -153,6 +155,7 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
           ruleDesc: `複数選手 ${MULTI_TOTAL_SALES_PERCENT}%を按分（${link.sharePercent}%）`,
           amount: calcMultiLineAmount(r.revenue, link.sharePercent),
           costMissing: false,
+          memo: r.memo,
         });
         continue;
       }
@@ -177,6 +180,7 @@ export function calcMonthlyIncentive(month: string): MonthlyIncentiveResult {
         ruleDesc: ruleDescription(rule, link.sharePercent),
         amount,
         costMissing: rule.basis === "profit" && r.unitCost === 0,
+        memo: r.memo,
       });
     }
     if (!anyRule) exclude(isMulti ? "複数選手商品（紐付け選手なし）" : "適用ルールなし", r);
