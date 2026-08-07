@@ -6,6 +6,7 @@ import type { Goods } from "@/types/goods";
 import type { EventTarget } from "@/types/event";
 import type { IncentiveRule } from "@/types/incentiveRule";
 import IncentiveBlock, { type IncentiveGoodsInfo } from "@/components/IncentiveBlock";
+import GoodsSearchSelect from "@/components/GoodsSearchSelect";
 
 const SALE_TYPE_LABELS: Record<string, string> = {
   normal:            "通常販売",
@@ -137,20 +138,16 @@ export default function EventSalesForm({ event, goodsList, wrestlers, rules, goo
           </p>
         ) : (
           <div>
-            <label className="block text-xs text-gray-500" htmlFor="goodsId">
+            <label className="block text-xs text-gray-500">
               商品を選択 <span className="text-red-500">*</span>
             </label>
-            <select
-              id="goodsId"
-              name="goodsId"
-              value={selectedGoodsId}
-              onChange={(e) => handleGoodsChange(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            >
-              {goodsList.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
+            <div className="mt-1">
+              <GoodsSearchSelect
+                goodsList={goodsList.map((g) => ({ id: g.id, name: g.name, category: g.category }))}
+                value={selectedGoodsId}
+                onChange={handleGoodsChange}
+              />
+            </div>
           </div>
         )}
       </section>

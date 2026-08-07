@@ -112,6 +112,12 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
           >
             ＋ 出庫を登録
           </Link>
+          <a
+            href={`/api/goods/cost-export?goodsId=${g.id}`}
+            className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            原価CSV
+          </a>
           <Link
             href={`/goods/${g.id}/edit`}
             className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
@@ -908,6 +914,22 @@ export default async function GoodsDetailPage({ params, searchParams }: Props) {
               >
                 一覧で見る →
               </Link>
+            )}
+            {salesRecords.length > 0 && (
+              <>
+                <a
+                  href={`/api/goods/${g.id}/sales/export?mode=summary`}
+                  className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  バリエーション別CSV
+                </a>
+                <a
+                  href={`/api/goods/${g.id}/sales/export`}
+                  className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  明細CSV
+                </a>
+              </>
             )}
             <Link
               href={`/goods/${g.id}/sales/new`}

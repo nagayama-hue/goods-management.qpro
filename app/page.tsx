@@ -114,12 +114,20 @@ export default async function HomePage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">商品一覧</h1>
-        <Link
-          href="/goods/new"
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + 新規登録
-        </Link>
+        <div className="flex items-center gap-2">
+          <a
+            href="/api/goods/cost-export"
+            className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            原価CSV（全商品）
+          </a>
+          <Link
+            href="/goods/new"
+            className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + 新規登録
+          </Link>
+        </div>
       </div>
 
       {/* サマリーカード */}

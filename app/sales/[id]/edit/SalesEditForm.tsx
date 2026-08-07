@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Goods } from "@/types/goods";
 import type { SalesRecord } from "@/types/salesRecord";
 import type { EcCampaign } from "@/types/ecCampaign";
+import GoodsSearchSelect from "@/components/GoodsSearchSelect";
 
 interface Props {
   record: SalesRecord;
@@ -106,16 +107,11 @@ export default function SalesEditForm({ record, goodsList, campaigns, returnTo, 
       {/* 商品選択 */}
       <section className="rounded border border-gray-200 bg-white p-4">
         <h2 className="mb-3 text-sm font-semibold text-gray-700">商品</h2>
-        <select
-          name="goodsId"
+        <GoodsSearchSelect
+          goodsList={goodsList.map((g) => ({ id: g.id, name: g.name, category: g.category }))}
           value={selectedGoodsId}
-          onChange={(e) => handleGoodsChange(e.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        >
-          {goodsList.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+          onChange={handleGoodsChange}
+        />
       </section>
 
       {/* バリエーション選択 */}
