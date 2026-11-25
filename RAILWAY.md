@@ -31,6 +31,9 @@ Railway ダッシュボード → `Variables` タブ：
 | 変数名 | 値 | 必須 |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | `sk-ant-xxxxxxx` | AI案出し機能に必須 |
+| `GOODS_BASIC_USER` | ログインID | **必須**（未設定だと全画面 503） |
+| `GOODS_BASIC_PASS` | ログインパスワード | **必須**（未設定だと全画面 503） |
+| `PORTAL_API_TOKEN` | `openssl rand -hex 32` の値 | ポータル連携（`/api/portal/*`）に必須 |
 
 `PORT` / `NODE_ENV` は Railway が自動設定するため不要。
 
@@ -120,6 +123,9 @@ Railway で公開後、以下の操作が正常に動作するか確認してく
 ```env
 # 必須
 ANTHROPIC_API_KEY=sk-ant-xxxxxxx
+GOODS_BASIC_USER=xxxx
+GOODS_BASIC_PASS=xxxx
+PORTAL_API_TOKEN=xxxx
 
 # 不要（Railway が自動設定）
 # PORT=xxxx

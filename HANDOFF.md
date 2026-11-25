@@ -37,12 +37,16 @@ npm run dev                        # http://localhost:3000
 | 項目 | 場所 | 用途 | 受け渡し |
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | `.env.local`（gitignore 済み） | AI 案出し・会議サマリー生成に**必須**。未設定でもアプリは落ちず、AI 機能だけエラー表示になる | 前任者からパスワードマネージャ等で受領し、各自の `.env.local` と Railway の Variables に設定 |
+| `GOODS_BASIC_USER` / `GOODS_BASIC_PASS` | `.env.local` / Railway Variables | 全画面・全 API のログイン（Basic 認証、`proxy.ts`）。**未設定だと全リクエストが 503**（設定漏れで公開状態に戻さない設計）。ローカル開発でも各自設定が必要 | ユーザー名・パスワードを利用者にパスワードマネージャ等で共有 |
+| `PORTAL_API_TOKEN` | Railway Variables | 社内ポータルから `/api/portal/*` を呼ぶ際の Bearer トークン（ポータル側 `GOODS_API_TOKEN` と同じ値）。未設定だと `/api/portal/*` は 503 | `openssl rand -hex 32` で生成し、ポータル側と同じ値を設定 |
 | `data/airregi-config.json` | gitignore 済み（clone に含まれない） | Airレジ API 連携設定。構造: `{ apiKey, apiToken, isEnabled, connectionStatus, lastCheckedAt, lastErrorMessage }` | ファイルが無い場合はアプリが自動生成する。現在 `isEnabled: false`（API 連携は保留中）のため、**当面はキーなしで運用可能**。連携再開時に前任者からキーを受領して設定 |
 
 `.env.local` の内容（値は別途受領）:
 
 ```env
 ANTHROPIC_API_KEY=<受け渡されたキー>
+GOODS_BASIC_USER=<ログインID>
+GOODS_BASIC_PASS=<ログインパスワード>
 ```
 
 ## デプロイ・本番運用（Railway）
