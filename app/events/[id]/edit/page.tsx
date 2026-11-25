@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getEventById } from "@/lib/eventStore";
 import { updateEventAction } from "./actions";
 import { formatCurrency } from "@/lib/format";
+import { fetchPortalEvents } from "@/lib/portalEvents";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,6 +16,14 @@ export default async function EditEventPage({ params }: Props) {
   const { id } = await params;
   const ev = getEventById(id);
   if (!ev) notFound();
+
+  // ポータルの大会候補（この大会の日付の前後30日）
+  const base = new Date(`${ev.date}T00:00:00Z`);
+  const shift = (days: number) =>
+    new Date(base.getTime() + days * 86_400_000).toISOString().slice(0, 10);
+  const portal = await fetchPortalEvents(shift(-30), shift(30));
+  const linkedInList =
+    ev.portalEventId === undefined || portal.events.some((p) => p.id === ev.portalEventId);
 
   return (
     <div className="space-y-5">
@@ -108,6 +117,52 @@ export default async function EditEventPage({ params }: Props) {
               defaultValue={ev.target}
               className={`${inputClass} text-right tabular-nums`}
             />
+          </div>
+
+          {/* ポータルの大会（社内ポータル連携） */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              ポータルの大会（任意）
+            </label>
+            {portal.events.length > 0 ? (
+              <select
+                name="portalEventId"
+                defaultValue={ev.portalEventId ?? ""}
+                className={inputClass}
+              >
+                <option value="">紐づけない</option>
+                {!linkedInList && (
+                  <option value={ev.portalEventId}>
+                    ID {ev.portalEventId}（候補の期間外）
+                  </option>
+                )}
+                {portal.events.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.date}　{p.name}
+                    {p.venue ? `（${p.venue}）` : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <input
+                  type="number"
+                  name="portalEventId"
+                  min={1}
+                  step={1}
+                  defaultValue={ev.portalEventId ?? ""}
+                  placeholder="ポータルの大会ID（例: 123）"
+                  className={`${inputClass} tabular-nums`}
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  {portal.error ?? "この日付の前後30日にポータルの大会が見つかりません。"}
+                  ポータルの大会IDがわかる場合は直接入力してください。
+                </p>
+              </>
+            )}
+            <p className="mt-1 text-xs text-gray-400">
+              紐づけると、社内ポータルの総会資料にこの大会のグッズ売上が表示されます。
+            </p>
           </div>
 
           {/* メモ */}

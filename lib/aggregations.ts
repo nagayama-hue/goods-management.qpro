@@ -1,4 +1,4 @@
-import type { GoodsCalculated, GoodsCategory } from "@/types/goods";
+import type { Goods, GoodsCalculated, GoodsCategory } from "@/types/goods";
 import { evaluateGoods } from "@/lib/evaluation";
 
 export interface AggregateRow {
@@ -41,11 +41,15 @@ export interface StockAlert {
 
 const STOCK_LOW_THRESHOLD = 10;
 
+/** 商品1個あたりの製造単価（製造原価 ÷ 製作数）。製作数が 0 なら 0 */
+export function unitManufacturingCost(goods: Goods): number {
+  if (goods.sales.productionCount <= 0) return 0;
+  return goods.budget.manufacturingCost / goods.sales.productionCount;
+}
+
 /** 商品1件の在庫金額（在庫数 × 製造単価） */
 function calcItemInventoryValue(g: GoodsCalculated): number {
-  if (g.sales.productionCount <= 0) return 0;
-  const unitCost = g.budget.manufacturingCost / g.sales.productionCount;
-  return g.stockCount * unitCost;
+  return g.stockCount * unitManufacturingCost(g);
 }
 
 /** 全商品のサマリーを計算する */

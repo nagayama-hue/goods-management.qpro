@@ -51,8 +51,9 @@ export function updateEvent(
   const updated: EventTarget = { id, ...data };
   if (existing.actual          !== undefined) updated.actual          = existing.actual;
   if (existing.actualCapacity  !== undefined) updated.actualCapacity  = existing.actualCapacity;
-  // capacity が未指定なら削除
+  // capacity / portalEventId が未指定なら削除
   if (!data.capacity) delete updated.capacity;
+  if (data.portalEventId === undefined) delete updated.portalEventId;
   list[idx] = updated;
   atomicWrite(JSON.stringify(list, null, 2));
 }

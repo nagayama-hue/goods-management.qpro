@@ -12,6 +12,7 @@ export async function updateEventAction(formData: FormData) {
   const capacityRaw = (formData.get("capacity") as string)?.trim();
   const targetRaw   = (formData.get("target")   as string)?.trim();
   const memo        = (formData.get("memo")     as string)?.trim() || undefined;
+  const portalRaw   = (formData.get("portalEventId") as string | null)?.trim() ?? "";
 
   if (!id || !type || !date || !name || !targetRaw) {
     throw new Error("種別・日付・名称・売上目標は必須です");
@@ -19,6 +20,10 @@ export async function updateEventAction(formData: FormData) {
 
   const target   = parseInt(targetRaw, 10);
   const capacity = capacityRaw ? parseInt(capacityRaw, 10) : undefined;
+  const portalId = portalRaw ? Number(portalRaw) : undefined;
+  if (portalId !== undefined && (!Number.isInteger(portalId) || portalId <= 0)) {
+    throw new Error("ポータルの大会IDは1以上の整数で入力してください");
+  }
 
   updateEvent(id, {
     type,
@@ -27,6 +32,7 @@ export async function updateEventAction(formData: FormData) {
     target:   isNaN(target) ? 0 : target,
     capacity: capacity && !isNaN(capacity) ? capacity : undefined,
     memo,
+    portalEventId: portalId,
   });
 
   redirect("/events");

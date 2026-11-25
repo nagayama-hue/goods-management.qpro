@@ -1,6 +1,6 @@
-import { createHash, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isValidBearer, safeEqual } from "@/lib/portalAuth";
 
 /**
  * 全ページ・全 API の手前で認証する（Next 16 の Proxy。旧 middleware.ts）。
@@ -12,13 +12,6 @@ import type { NextRequest } from "next/server";
  * Server Actions はページへの POST として届くため、ページと同じくここで保護される。
  * ※ docs/portal-integration.md 段階0
  */
-
-/** 長さの違いも漏らさない時間一定比較（両辺を SHA-256 にそろえてから比較） */
-function safeEqual(a: string, b: string): boolean {
-  const ha = createHash("sha256").update(a, "utf8").digest();
-  const hb = createHash("sha256").update(b, "utf8").digest();
-  return timingSafeEqual(ha, hb);
-}
 
 function notConfigured(name: string): NextResponse {
   return new NextResponse(`認証設定が未構成のためアクセスできません（${name}）。`, {
@@ -45,9 +38,7 @@ function checkPortalToken(request: NextRequest): NextResponse | null {
   const token = process.env.PORTAL_API_TOKEN;
   if (!token) return notConfigured("PORTAL_API_TOKEN");
 
-  const header = request.headers.get("authorization") ?? "";
-  const match = /^Bearer\s+(.+)$/i.exec(header);
-  if (!match || !safeEqual(match[1].trim(), token)) return unauthorized(false);
+  if (!isValidBearer(request.headers.get("authorization"), token)) return unauthorized(false);
   return null;
 }
 

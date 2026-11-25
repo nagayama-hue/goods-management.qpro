@@ -10,4 +10,5 @@ export interface EventTarget {
   actual?:          number;      // その他売上（円）入場料・スポンサー等、物販以外の売上。大会後に手動入力。
   actualCapacity?:  number;      // 実績動員（人）大会後に入力
   memo?:            string;
+  portalEventId?:   number;      // 社内ポータルの大会ID（events.id）。ポータル連携の集計で使う
 }

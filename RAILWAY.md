@@ -34,6 +34,8 @@ Railway ダッシュボード → `Variables` タブ：
 | `GOODS_BASIC_USER` | ログインID | **必須**（未設定だと全画面 503） |
 | `GOODS_BASIC_PASS` | ログインパスワード | **必須**（未設定だと全画面 503） |
 | `PORTAL_API_TOKEN` | `openssl rand -hex 32` の値 | ポータル連携（`/api/portal/*`）に必須 |
+| `PORTAL_API_URL` | ポータルの本番URL | 任意（大会編集画面でポータルの大会を選ぶため） |
+| `PORTAL_EVENTS_TOKEN` | ポータル側と同じ値 | 任意（同上） |
 
 `PORT` / `NODE_ENV` は Railway が自動設定するため不要。
 
